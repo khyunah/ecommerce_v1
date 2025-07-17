@@ -1,6 +1,7 @@
 package com.loopers.interfaces.api.user;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.loopers.domain.user.User;
 import com.loopers.domain.user.UserService;
 import com.loopers.infrastructure.user.UserJpaRepository;
 import jakarta.transaction.Transactional;
@@ -13,7 +14,10 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.time.LocalDate;
+
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -76,4 +80,39 @@ class UserV1ApiE2ETest {
         }
     }
 
+    @DisplayName("Get /api/v1/users/me")
+    @Nested
+    class Get {
+
+        @DisplayName("내 정보 조회에 성공할 경우, 해당하는 유저 정보를 응답으로 반환한다.")
+        @Test
+        void returnsUserInfo_whenGetMyInfoSuccess() throws Exception {
+            // given
+            String userId = "asd123";
+            String email = "aa@naver.com";
+            String birthDate = "1994-03-15";
+            User user = userService.register(new User(userId,email, LocalDate.parse(birthDate), User.Gender.FEMALE));
+
+            // when & then
+            mockMvc.perform(get("/api/v1/users/me/"+user.getId())
+                            .contentType(MediaType.APPLICATION_JSON))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.userId").value(user.getUserId()))
+                    .andExpect(jsonPath("$.email").value(user.getEmail()))
+                    .andExpect(jsonPath("$.birthDate").value(user.getBirthDate().toString()))
+                    .andExpect(jsonPath("$.gender").value(user.getGender().name()))
+                    .andDo(print());
+        }
+
+        @DisplayName("존재하지 않는 ID 로 조회할 경우, 404 Not Found 응답을 반환한다.")
+        @Test
+        void returns404NotFound_whenUserIdDoesNotExist() throws Exception {
+            // given
+            Long id = 1L;
+            // when & then
+            mockMvc.perform(get("/api/v1/users/me/"+id)
+                            .contentType(MediaType.APPLICATION_JSON))
+                    .andExpect(status().isNotFound());
+        }
+    }
 }
