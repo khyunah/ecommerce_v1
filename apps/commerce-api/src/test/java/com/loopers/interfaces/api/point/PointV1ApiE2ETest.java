@@ -72,4 +72,43 @@ public class PointV1ApiE2ETest {
         }
     }
 
+    @DisplayName("/api/v1/points/charge")
+    @Nested
+    class charge {
+
+        @DisplayName("존재하는 유저가 1000원을 충전할 경우, 충전된 보유 총량을 응답으로 반환한다.")
+        @Test
+        void returnsTotalPoint_whenUserExistsAndCharges1000Won() throws Exception {
+            // given
+            Point point = new Point("asd123",10000);
+            pointRepository.save(point);
+            PointV1Dto.PointChargeRequest request = new PointV1Dto.PointChargeRequest(
+                    point.getUserId(),
+                    1000
+            );
+            // when & then
+            mockMvc.perform(post("/api/v1/points/charge")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.userId").value(request.userId()))
+                    .andExpect(jsonPath("$.point").value(request.amount() + point.getPoint()))
+                    .andDo(print());
+        }
+
+        @DisplayName("존재하지 않는 유저로 요청할 경우, 404 Not Found 응답을 반환한다.")
+        @Test
+        void returns400BadRequest_whenIsNullGender() throws Exception {
+            // given
+            String userId = "asd123";
+            int amount = 1000;
+            PointV1Dto.PointChargeRequest request = new PointV1Dto.PointChargeRequest(userId,amount);
+
+            // when & then
+            mockMvc.perform(post("/api/v1/points/charge")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isNotFound());
+        }
+    }
 }
