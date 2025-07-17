@@ -23,4 +23,12 @@ public class UserFacade {
         return UserInfo.from(userService.register(requestUser));
     }
 
+    public UserInfo get(String id){
+        Long longId = Long.parseLong(id);
+        User getUser = userService.getById(longId);
+        if(null == getUser){
+            return null;
+        }
+        return UserInfo.from(getUser);
+    }
 }
