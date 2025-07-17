@@ -71,4 +71,37 @@ class UserServiceIntegrationTest {
 
     }
 
+    @DisplayName("해당 ID 의 회원이 존재할 경우, 회원 정보가 반환된다.")
+    @Test
+    void returnUserInfo_whenIdExists() {
+        // given
+        User firstUser = new User("testId123", "asd123@gmail.com", LocalDate.parse("2000-03-12"), User.Gender.FEMALE);
+        User saveUser = userSpyService.register(firstUser);
+
+        // when
+        User selectUser = userSpyService.getById(saveUser.getId());
+
+        // then
+        assertAll(
+                () -> assertThat(selectUser).isNotNull(),
+                () -> assertThat(selectUser.getId()).isEqualTo(saveUser.getId()),
+                () -> assertThat(selectUser.getUserId()).isEqualTo(saveUser.getUserId()),
+                () -> assertThat(selectUser.getEmail()).isEqualTo(saveUser.getEmail()),
+                () -> assertThat(selectUser.getBirthDate()).isEqualTo(saveUser.getBirthDate()),
+                () -> assertThat(selectUser.getGender()).isEqualTo(saveUser.getGender())
+        );
+    }
+
+    @DisplayName("해당 ID 의 회원이 존재하지 않을 경우, null 이 반환된다.")
+    @Test
+    void returnNull_whenNotFoundId() {
+        // given
+        Long id = 1L;
+
+        // when
+        User result = userSpyService.getById(id);
+
+        // then
+        assertThat(result).isNull();
+    }
 }
