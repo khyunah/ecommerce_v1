@@ -52,4 +52,20 @@ public class PointServiceIntegrationTest {
         assertThat(point).isNull();
     }
 
+    @DisplayName("존재하지 않는 유저 ID 로 충전을 시도한 경우, 실패한다.")
+    @Test
+    void failsToCharge_whenUserIdDoesNotExist() {
+        // given
+        Point point = new Point("test124", 10000);
+        int amount = 1000;
+        // when
+        CoreException exception = assertThrows(CoreException.class, () -> {
+            pointSpyService.charge(point, amount);
+        });
+
+        // then
+        assertThat(exception.getMessage()).isEqualTo("존재하지 않는 유저 ID 로 충전을 시도했습니다.");
+
+    }
+
 }
