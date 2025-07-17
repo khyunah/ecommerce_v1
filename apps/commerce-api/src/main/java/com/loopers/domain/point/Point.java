@@ -22,4 +22,18 @@ public class Point {
         this.point = point;
     }
 
+    public static void validatePoint(int point){
+        if (point <= 0){
+            throw new IllegalArgumentException("0 이하의 정수로 포인트를 충전할 수 없습니다.");
+        }
+    }
+
+    public static Point charge(Point point, int amount){
+        return new Point(
+                point.getUserId(),
+                point.getPoint() + amount
+        );
+    }
+
+
 }
