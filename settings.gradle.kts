@@ -1,4 +1,4 @@
-rootProject.name = "loopers-java-spring-template"
+rootProject.name = "khyunah-ecommerce-v1"
 
 include(
     ":apps:commerce-api",
