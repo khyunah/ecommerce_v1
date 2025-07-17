@@ -29,4 +29,13 @@ public class PointV1Controller {
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
+    @PostMapping("/charge")
+    public ResponseEntity<PointV1Dto.PointInfoResponse> charge(@RequestBody PointV1Dto.PointChargeRequest request) {
+        PointInfo pointInfo = pointFacade.charge(request);
+        if(pointInfo == null){
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+        }
+        PointV1Dto.PointInfoResponse response = PointV1Dto.PointInfoResponse.from(pointInfo);
+        return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
 }
