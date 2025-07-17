@@ -24,4 +24,14 @@ public class UserV1Controller {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
+    @GetMapping("/me/{id}")
+    public ResponseEntity<UserV1Dto.UserInfoResponse> get(@PathVariable String id){
+        UserInfo userInfo = userFacade.get(id);
+        if(userInfo == null){
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+        }
+        UserV1Dto.UserInfoResponse response = UserV1Dto.UserInfoResponse.from(userInfo);
+        return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
+
 }
