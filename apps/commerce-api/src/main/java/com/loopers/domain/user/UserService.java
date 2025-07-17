@@ -22,4 +22,8 @@ public class UserService {
                 .orElseThrow(() -> new CoreException(ErrorType.BAD_REQUEST, "저장할 수 없습니다."));
     }
 
+    public User getById(Long id) {
+        return userRepository.findById(id).orElse(null);
+    }
+
 }
