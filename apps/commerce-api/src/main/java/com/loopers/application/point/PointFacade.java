@@ -11,21 +11,18 @@ import org.springframework.stereotype.Component;
 public class PointFacade {
     private final PointService pointService;
 
-    public PointInfo get(String userId){
-        Point getUser = pointService.get(userId);
-        if(null == getUser){
+    public PointInfo get(Long refUserId){
+        Point point = pointService.get(refUserId);
+        if(null == point){
             return null;
         }
-        return PointInfo.from(getUser);
+        return PointInfo.from(point);
     }
 
     public PointInfo charge(PointV1Dto.PointChargeRequest pointChargeRequest){
-        Point getPoint = pointService.get(pointChargeRequest.userId());
-        if(null == getPoint){
-            return null;
-        }
-        Point point = new Point(pointChargeRequest.userId());
-        Point getUser = pointService.charge(point, pointChargeRequest.amount());
-        return PointInfo.from(getUser);
+        pointService.get(pointChargeRequest.refUserId());
+        Point point = new Point(pointChargeRequest.refUserId());
+        Point user = pointService.charge(point, pointChargeRequest.amount());
+        return PointInfo.from(user);
     }
 }

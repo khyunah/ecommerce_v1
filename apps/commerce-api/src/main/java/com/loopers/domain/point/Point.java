@@ -12,15 +12,15 @@ import lombok.Getter;
 @Table(name = "point")
 public class Point {
     @Id
-    private String userId;
+    private Long refUserId;
     private int point;
 
     public Point(){}
-    public Point(String userId) {
-        this.userId =  userId;
+    public Point(Long refUserId) {
+        this.refUserId = refUserId;
     }
-    public Point(String userId, int point) {
-        this.userId =  userId;
+    public Point(Long refUserId, int point) {
+        this.refUserId = refUserId;
         this.point = point;
     }
 
@@ -33,7 +33,7 @@ public class Point {
     public static Point charge(Point point, int amount){
         validatePoint(point.getPoint());
         return new Point(
-                point.getUserId(),
+                point.getRefUserId(),
                 point.getPoint() + amount
         );
     }

@@ -29,11 +29,11 @@ public class PointServiceIntegrationTest {
     @Test
     void returnUserInfo_whenIdExists() {
         // given
-        Point point = new Point("test124", 10000);
+        Point point = new Point(1L, 10000);
         Point save = pointRepository.save(point);
 
         // when
-        Point selectPoint = pointSpyService.get(point.getUserId());
+        Point selectPoint = pointSpyService.get(point.getRefUserId());
         int savedPoint = save.getPoint();
 
         // then
@@ -44,19 +44,22 @@ public class PointServiceIntegrationTest {
     @Test
     void returnNull_whenUserIdNotFound() {
         // given
-        String userId = "test1212";
+        Long refUserId = 1L;
+
         // when
-        Point point = pointSpyService.get(userId);
+        CoreException exception = assertThrows(CoreException.class, () -> {
+            Point point = pointSpyService.get(refUserId);
+        });
 
         // then
-        assertThat(point).isNull();
+        assertThat(exception.getMessage()).isEqualTo("존재하지 않는 유저 ID 입니다.");
     }
 
     @DisplayName("존재하지 않는 유저 ID 로 충전을 시도한 경우, 실패한다.")
     @Test
     void failsToCharge_whenUserIdDoesNotExist() {
         // given
-        Point point = new Point("test124", 10000);
+        Point point = new Point(1L, 10000);
         int amount = 1000;
         // when
         CoreException exception = assertThrows(CoreException.class, () -> {
