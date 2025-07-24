@@ -1,5 +1,6 @@
 package com.loopers.domain.user;
 
+import com.loopers.support.error.CoreException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -15,7 +16,7 @@ class UserTest {
         String userId = "abcd123456789";
 
         // when
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
+        CoreException exception = assertThrows(CoreException.class, () -> {
            User.validateUserId(userId);
         });
 
@@ -30,7 +31,7 @@ class UserTest {
         String email = "aa.gmail.com";
 
         // when
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
+        CoreException exception = assertThrows(CoreException.class, () -> {
            User.validateEmail(email);
         });
 
@@ -45,11 +46,11 @@ class UserTest {
         String birthDate = "200-09-09";
 
         // when
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
+        CoreException exception = assertThrows(CoreException.class, () -> {
            User.validateBirthDate(birthDate);
         });
 
         // then
-        assertThat(exception.getMessage()).isEqualTo("이메일이 xx@yy.zz 형식에 맞지 않습니다.");
+        assertThat(exception.getMessage()).isEqualTo("생년월일이 YYYY-MM-DD 형식에 맞지 않습니다.");
     }
 }
