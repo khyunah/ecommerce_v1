@@ -12,20 +12,16 @@ public class PointService {
     private final PointRepository pointRepository;
 
     public Point get(String userId){
-        Point point = pointRepository.findByUserId(userId).orElse(null);
-        if(null == point){
-            return null;
-        }
-        return point;
+        return pointRepository.findByUserId(userId).orElse(null);
     }
 
     public Point charge(Point point, int amount){
-        Point getPoint = pointRepository.findByUserId(point.getUserId()).orElse(null);
-        if(null == getPoint){
+        Point findedPoint = pointRepository.findByUserId(point.getUserId()).orElse(null);
+        if(null == findedPoint){
             throw new CoreException(ErrorType.NOT_FOUND, "존재하지 않는 유저 ID 로 충전을 시도했습니다.");
         }
 
-        Point charged = Point.charge(getPoint, amount);
+        Point charged = Point.charge(findedPoint, amount);
         return pointRepository.save(charged);
     }
 }

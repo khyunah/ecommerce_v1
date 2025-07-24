@@ -23,9 +23,4 @@ public class PointRepositoryImpl implements PointRepository {
         return pointJpaRepository.save(point);
     }
 
-    @Override
-    public boolean existsByUserId(String userId) {
-        return pointJpaRepository.findByUserId(userId).isPresent();
-    }
-
 }
