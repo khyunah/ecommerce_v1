@@ -1,17 +1,22 @@
 package com.loopers.interfaces.api.user;
 
 import com.loopers.application.user.UserInfo;
+import jakarta.validation.constraints.NotBlank;
 
 public class UserV1Dto {
-    public record UserJoinRequest(
-            String userId,
+    public record UserRegisterRequest(
+            @NotBlank(message = "아이디는 필수입니다.")
+            String loginId,
+            @NotBlank(message = "이메일은 필수입니다.")
             String email,
+            @NotBlank(message = "생년월일은 필수입니다.")
             String birthDate,
+            @NotBlank(message = "성별은 필수입니다.")
             String gender
     ){}
     public record UserInfoResponse(
             Long id,
-            String userId,
+            String loginId,
             String email,
             String birthDate,
             String gender
@@ -19,7 +24,7 @@ public class UserV1Dto {
         public static UserInfoResponse from(UserInfo userInfo) {
             return new UserInfoResponse(
                     userInfo.id(),
-                    userInfo.userId(),
+                    userInfo.loginId(),
                     userInfo.email(),
                     userInfo.birthDate(),
                     userInfo.gender()

@@ -17,7 +17,7 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     @Column(nullable = false, unique = true)
-    private String userId;
+    private String loginId;
     @Column(nullable = false, unique = true)
     private String email;
     private LocalDate birthDate;
@@ -32,11 +32,11 @@ public class User {
     private static final Pattern EMAIL_PATTERN = Pattern.compile("^[\\w.-]+@[\\w.-]+\\.[a-zA-Z]{2,}$");
 
     public User(){}
-    public User(String userId, String email, LocalDate birthDate, Gender gender) {
-        validateUserId(userId);
+    public User(String loginId, String email, LocalDate birthDate, Gender gender) {
+        validateUserId(loginId);
         validateEmail(email);
         validateBirthDate(birthDate.toString());
-        this.userId =  userId;
+        this.loginId = loginId;
         this.email = email;
         this.birthDate = birthDate;
         this.gender = gender;

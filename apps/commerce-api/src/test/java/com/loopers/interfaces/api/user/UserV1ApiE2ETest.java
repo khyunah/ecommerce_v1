@@ -44,7 +44,7 @@ class UserV1ApiE2ETest {
         @Test
         void returnsUserInfo_whenSuccessToJoin() throws Exception {
             // given
-            UserV1Dto.UserJoinRequest request = new UserV1Dto.UserJoinRequest(
+            UserV1Dto.UserRegisterRequest request = new UserV1Dto.UserRegisterRequest(
                     "asd123",
                     "test123@naver.com",
                     "1994-03-15",
@@ -55,7 +55,7 @@ class UserV1ApiE2ETest {
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isCreated())
-                    .andExpect(jsonPath("$.userId").value(request.userId()))
+                    .andExpect(jsonPath("$.userId").value(request.loginId()))
                     .andExpect(jsonPath("$.email").value(request.email()))
                     .andExpect(jsonPath("$.birthDate").value(request.birthDate()))
                     .andExpect(jsonPath("$.gender").value(request.gender()))
@@ -66,7 +66,7 @@ class UserV1ApiE2ETest {
         @Test
         void returns400BadRequest_whenIsNullGender() throws Exception {
             // given
-            UserV1Dto.UserJoinRequest request = new UserV1Dto.UserJoinRequest(
+            UserV1Dto.UserRegisterRequest request = new UserV1Dto.UserRegisterRequest(
                     "asd123",
                     "test123@naver.com",
                     "1994-03-15",
@@ -97,20 +97,20 @@ class UserV1ApiE2ETest {
             mockMvc.perform(get("/api/v1/users/me/"+user.getId())
                             .contentType(MediaType.APPLICATION_JSON))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.userId").value(user.getUserId()))
+                    .andExpect(jsonPath("$.loginId").value(user.getLoginId()))
                     .andExpect(jsonPath("$.email").value(user.getEmail()))
                     .andExpect(jsonPath("$.birthDate").value(user.getBirthDate().toString()))
                     .andExpect(jsonPath("$.gender").value(user.getGender().name()))
                     .andDo(print());
         }
 
-        @DisplayName("존재하지 않는 ID 로 조회할 경우, 404 Not Found 응답을 반환한다.")
+        @DisplayName("존재하지 않는 loginId 로 조회할 경우, 404 Not Found 응답을 반환한다.")
         @Test
         void returns404NotFound_whenUserIdDoesNotExist() throws Exception {
             // given
-            Long id = 1L;
+            String loginId = "test1111";
             // when & then
-            mockMvc.perform(get("/api/v1/users/me/"+id)
+            mockMvc.perform(get("/api/v1/users/me/"+loginId)
                             .contentType(MediaType.APPLICATION_JSON))
                     .andExpect(status().isNotFound());
         }

@@ -13,9 +13,9 @@ import java.time.LocalDate;
 public class UserFacade {
     private final UserService userService;
 
-    public UserInfo register(UserV1Dto.UserJoinRequest request) {
+    public UserInfo register(UserV1Dto.UserRegisterRequest request) {
         User requestUser = new User(
-                request.userId(),
+                request.loginId(),
                 request.email(),
                 LocalDate.parse(request.birthDate()),
                 User.Gender.valueOf(request.gender())
@@ -23,12 +23,8 @@ public class UserFacade {
         return UserInfo.from(userService.register(requestUser));
     }
 
-    public UserInfo get(String id){
-        Long longId = Long.parseLong(id);
-        User getUser = userService.getById(longId);
-        if(null == getUser){
-            return null;
-        }
-        return UserInfo.from(getUser);
+    public UserInfo get(String loginId){
+        User user = userService.getByLoginId(loginId);
+        return UserInfo.from(user);
     }
 }

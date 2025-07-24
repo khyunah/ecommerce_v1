@@ -13,11 +13,11 @@ class UserTest {
     @Test
     void failToCreate_whenUnValidateUserId() {
         // given
-        String userId = "abcd123456789";
+        String loginId = "abcd123456789";
 
         // when
         CoreException exception = assertThrows(CoreException.class, () -> {
-           User.validateUserId(userId);
+           User.validateUserId(loginId);
         });
 
         // then

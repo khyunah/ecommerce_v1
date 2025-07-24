@@ -15,7 +15,7 @@ public class UserV1Controller {
     private final UserFacade userFacade;
 
     @PostMapping
-    public ResponseEntity<UserV1Dto.UserInfoResponse> register(@RequestBody UserV1Dto.UserJoinRequest request) {
+    public ResponseEntity<UserV1Dto.UserInfoResponse> register(@RequestBody UserV1Dto.UserRegisterRequest request) {
         if(null == request.gender() || request.gender().isEmpty()){
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
         }
@@ -24,12 +24,9 @@ public class UserV1Controller {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-    @GetMapping("/me/{id}")
-    public ResponseEntity<UserV1Dto.UserInfoResponse> get(@PathVariable String id){
-        UserInfo userInfo = userFacade.get(id);
-        if(userInfo == null){
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
-        }
+    @GetMapping("/me/{loingId}")
+    public ResponseEntity<UserV1Dto.UserInfoResponse> get(@PathVariable String loingId){
+        UserInfo userInfo = userFacade.get(loingId);
         UserV1Dto.UserInfoResponse response = UserV1Dto.UserInfoResponse.from(userInfo);
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
