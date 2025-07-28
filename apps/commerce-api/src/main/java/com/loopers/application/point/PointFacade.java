@@ -1,7 +1,10 @@
 package com.loopers.application.point;
 
+import com.loopers.application.point.in.PointChargeCommand;
+import com.loopers.application.point.out.PointInfo;
 import com.loopers.domain.point.Point;
 import com.loopers.domain.point.PointService;
+import com.loopers.domain.user.vo.UserId;
 import com.loopers.interfaces.api.point.PointV1Dto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -11,18 +14,14 @@ import org.springframework.stereotype.Component;
 public class PointFacade {
     private final PointService pointService;
 
-    public PointInfo get(Long refUserId){
+    public PointInfo get(String refUserId){
         Point point = pointService.get(refUserId);
-        if(null == point){
-            return null;
-        }
         return PointInfo.from(point);
     }
 
-    public PointInfo charge(PointV1Dto.PointChargeRequest pointChargeRequest){
-        pointService.get(pointChargeRequest.refUserId());
-        Point point = new Point(pointChargeRequest.refUserId());
-        Point user = pointService.charge(point, pointChargeRequest.amount());
+    public PointInfo charge(PointChargeCommand command){
+        Point point = pointService.get(command.refUserId());
+        Point user = pointService.charge(point, command.amount());
         return PointInfo.from(user);
     }
 }

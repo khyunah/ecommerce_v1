@@ -1,6 +1,7 @@
 package com.loopers.interfaces.api.user;
 
-import com.loopers.application.user.UserInfo;
+import com.loopers.application.user.in.UserRegisterCommand;
+import com.loopers.application.user.out.UserInfo;
 import com.loopers.application.user.UserFacade;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -16,10 +17,8 @@ public class UserV1Controller {
 
     @PostMapping
     public ResponseEntity<UserV1Dto.UserInfoResponse> register(@RequestBody UserV1Dto.UserRegisterRequest request) {
-        if(null == request.gender() || request.gender().isEmpty()){
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
-        }
-        UserInfo userInfo = userFacade.register(request);
+        UserRegisterCommand command = UserV1Dto.UserRegisterRequest.toCommand(request);
+        UserInfo userInfo = userFacade.register(command);
         UserV1Dto.UserInfoResponse response = UserV1Dto.UserInfoResponse.from(userInfo);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }

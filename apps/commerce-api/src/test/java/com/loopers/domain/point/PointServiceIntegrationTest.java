@@ -1,5 +1,6 @@
 package com.loopers.domain.point;
 
+import com.loopers.domain.user.vo.UserId;
 import com.loopers.support.error.CoreException;
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.BeforeEach;
@@ -29,26 +30,26 @@ public class PointServiceIntegrationTest {
     @Test
     void returnUserInfo_whenIdExists() {
         // given
-        Point point = new Point(1L, 10000);
-        Point save = pointRepository.save(point);
+        String userId = "test123";
+        Point point = Point.from(userId, 10000L);
+        Point savedPoint = pointRepository.save(point);
 
         // when
-        Point selectPoint = pointSpyService.get(point.getRefUserId());
-        int savedPoint = save.getPoint();
+        Point selectPoint = pointSpyService.get(userId);
 
         // then
-        assertThat(savedPoint).isEqualTo(selectPoint.getPoint());
+        assertThat(savedPoint.getBalance()).isEqualTo(selectPoint.getBalance());
     }
 
     @DisplayName("해당 ID 의 회원이 존재하지 않을 경우, null 이 반환된다.")
     @Test
     void returnNull_whenUserIdNotFound() {
         // given
-        Long refUserId = 1L;
+        String refUserId = "test123";
 
         // when
         CoreException exception = assertThrows(CoreException.class, () -> {
-            Point point = pointSpyService.get(refUserId);
+            pointSpyService.get(refUserId);
         });
 
         // then
@@ -59,8 +60,9 @@ public class PointServiceIntegrationTest {
     @Test
     void failsToCharge_whenUserIdDoesNotExist() {
         // given
-        Point point = new Point(1L, 10000);
-        int amount = 1000;
+        Point point = Point.from("test123", 10000L);
+        Long amount = 1000L;
+
         // when
         CoreException exception = assertThrows(CoreException.class, () -> {
             pointSpyService.charge(point, amount);
