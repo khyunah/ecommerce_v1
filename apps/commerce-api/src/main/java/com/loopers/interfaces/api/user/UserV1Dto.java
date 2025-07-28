@@ -1,6 +1,7 @@
 package com.loopers.interfaces.api.user;
 
-import com.loopers.application.user.UserInfo;
+import com.loopers.application.user.in.UserRegisterCommand;
+import com.loopers.application.user.out.UserInfo;
 import jakarta.validation.constraints.NotBlank;
 
 public class UserV1Dto {
@@ -13,7 +14,16 @@ public class UserV1Dto {
             String birthDate,
             @NotBlank(message = "성별은 필수입니다.")
             String gender
-    ){}
+    ){
+        public static UserRegisterCommand toCommand(UserRegisterRequest request) {
+            return new UserRegisterCommand(
+                    request.loginId(),
+                    request.email(),
+                    request.birthDate(),
+                    request.gender()
+            );
+        }
+    }
     public record UserInfoResponse(
             Long id,
             String loginId,
