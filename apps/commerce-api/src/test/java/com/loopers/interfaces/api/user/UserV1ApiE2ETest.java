@@ -91,7 +91,7 @@ class UserV1ApiE2ETest {
             String userId = "asd123";
             String email = "aa@naver.com";
             String birthDate = "1994-03-15";
-            User user = userService.register(new User(userId,email, LocalDate.parse(birthDate), User.Gender.FEMALE));
+            User user = userService.register(User.from(userId,email, birthDate, "F"));
 
             // when & then
             mockMvc.perform(get("/api/v1/users/me/"+user.getId())

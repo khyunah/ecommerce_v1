@@ -1,5 +1,8 @@
 package com.loopers.domain.user;
 
+import com.loopers.domain.user.model.BirthDate;
+import com.loopers.domain.user.model.Email;
+import com.loopers.domain.user.model.LoginId;
 import com.loopers.support.error.CoreException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -17,7 +20,7 @@ class UserTest {
 
         // when
         CoreException exception = assertThrows(CoreException.class, () -> {
-           User.validateUserId(loginId);
+           LoginId.validate(loginId);
         });
 
         // then
@@ -32,7 +35,7 @@ class UserTest {
 
         // when
         CoreException exception = assertThrows(CoreException.class, () -> {
-           User.validateEmail(email);
+           Email.validate(email);
         });
 
         // then
@@ -47,7 +50,7 @@ class UserTest {
 
         // when
         CoreException exception = assertThrows(CoreException.class, () -> {
-           User.validateBirthDate(birthDate);
+            BirthDate.validate(birthDate);
         });
 
         // then
