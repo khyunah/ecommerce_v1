@@ -1,5 +1,6 @@
 package com.loopers.domain.user;
 
+import com.loopers.domain.user.model.LoginId;
 import com.loopers.support.error.CoreException;
 import com.loopers.support.error.ErrorType;
 import jakarta.transaction.Transactional;
@@ -22,12 +23,9 @@ public class UserService {
                 .orElseThrow(() -> new CoreException(ErrorType.BAD_REQUEST, "저장할 수 없습니다."));
     }
 
-    public User getById(Long id) {
-        return userRepository.findById(id).orElse(null);
-    }
-
     public User getByLoginId(String loginId) {
-        return userRepository.findByLoginId(loginId).orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "존재하지 않는 아이디입니다."));
+        return userRepository.findByLoginId(LoginId.from(loginId))
+                .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "존재하지 않는 아이디입니다."));
     }
 
 }
