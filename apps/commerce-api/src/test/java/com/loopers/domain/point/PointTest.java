@@ -1,5 +1,6 @@
 package com.loopers.domain.point;
 
+import com.loopers.domain.point.vo.Balance;
 import com.loopers.support.error.CoreException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -13,11 +14,11 @@ public class PointTest {
     @Test
     void failToCreate_whenUnValidateUserId() {
         // given
-        int point = 0;
+        Long point = 0L;
 
         // when
         CoreException exception = assertThrows(CoreException.class, () -> {
-            Point.validatePoint(point);
+            Balance.validate(point);
         });
 
         // then
