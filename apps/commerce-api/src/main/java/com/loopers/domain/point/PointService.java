@@ -11,21 +11,15 @@ public class PointService {
 
     private final PointRepository pointRepository;
 
-    public Point get(String userId){
-        Point point = pointRepository.findByUserId(userId).orElse(null);
-        if(null == point){
-            return null;
-        }
-        return point;
+    public Point get(Long refUserId){
+        return pointRepository.findByRefUserId(refUserId)
+                .orElseThrow(()-> new CoreException(ErrorType.NOT_FOUND, "존재하지 않는 유저 ID 입니다."));
     }
 
     public Point charge(Point point, int amount){
-        Point getPoint = pointRepository.findByUserId(point.getUserId()).orElse(null);
-        if(null == getPoint){
-            throw new CoreException(ErrorType.NOT_FOUND, "존재하지 않는 유저 ID 로 충전을 시도했습니다.");
-        }
-
-        Point charged = Point.charge(getPoint, amount);
+        Point findedPoint = pointRepository.findByRefUserId(point.getRefUserId())
+                .orElseThrow(()-> new CoreException(ErrorType.NOT_FOUND, "존재하지 않는 유저 ID 로 충전을 시도했습니다."));
+        Point charged = Point.charge(findedPoint, amount);
         return pointRepository.save(charged);
     }
 }

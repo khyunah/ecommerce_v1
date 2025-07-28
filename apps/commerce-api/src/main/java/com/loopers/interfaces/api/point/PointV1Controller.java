@@ -17,14 +17,11 @@ public class PointV1Controller {
     private final PointFacade pointFacade;
 
     @GetMapping("/{userId}")
-    public ResponseEntity<PointV1Dto.PointInfoResponse> get(@PathVariable String userId, @RequestHeader Map<String, String> headers){
-        if(headers.get("X-USER-ID").isEmpty()){
+    public ResponseEntity<PointV1Dto.PointInfoResponse> get(@PathVariable Long userId, @RequestHeader Map<String, String> headers){
+        if( null == headers.get("X-USER-ID") && "".equals(headers.get("X-USER-ID"))){
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
         }
         PointInfo pointInfo = pointFacade.get(userId);
-        if(pointInfo == null){
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
-        }
         PointV1Dto.PointInfoResponse response = PointV1Dto.PointInfoResponse.from(pointInfo);
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
@@ -32,9 +29,6 @@ public class PointV1Controller {
     @PostMapping("/charge")
     public ResponseEntity<PointV1Dto.PointInfoResponse> charge(@RequestBody PointV1Dto.PointChargeRequest request) {
         PointInfo pointInfo = pointFacade.charge(request);
-        if(pointInfo == null){
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
-        }
         PointV1Dto.PointInfoResponse response = PointV1Dto.PointInfoResponse.from(pointInfo);
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }

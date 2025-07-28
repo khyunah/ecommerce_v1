@@ -4,16 +4,16 @@ import com.loopers.application.point.PointInfo;
 
 public class PointV1Dto {
     public record PointChargeRequest(
-            String userId,
+            Long refUserId,
             int amount
     ){}
     public record PointInfoResponse(
-            String userId,
+            Long refUserId,
             int point
     ){
         public static PointInfoResponse from(PointInfo pointInfo) {
             return new PointInfoResponse(
-                    pointInfo.userId(),
+                    pointInfo.refUserId(),
                     pointInfo.point()
             );
         }

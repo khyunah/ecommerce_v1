@@ -14,7 +14,7 @@ public class UserService {
 
     @Transactional
     public User register(User user) {
-        if(userRepository.existsByUserId(user.getUserId())){
+        if(userRepository.existsByLoginId(user.getLoginId())){
             throw new CoreException(ErrorType.CONFLICT, "이미 가입된 ID 입니다.");
         };
 
@@ -24,6 +24,10 @@ public class UserService {
 
     public User getById(Long id) {
         return userRepository.findById(id).orElse(null);
+    }
+
+    public User getByLoginId(String loginId) {
+        return userRepository.findByLoginId(loginId).orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "존재하지 않는 아이디입니다."));
     }
 
 }

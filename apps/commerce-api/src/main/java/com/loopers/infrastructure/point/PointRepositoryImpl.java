@@ -14,18 +14,13 @@ public class PointRepositoryImpl implements PointRepository {
     private final PointJpaRepository pointJpaRepository;
 
     @Override
-    public Optional<Point> findByUserId(String userId) {
-        return pointJpaRepository.findByUserId(userId);
+    public Optional<Point> findByRefUserId(Long refUserId) {
+        return pointJpaRepository.findByRefUserId(refUserId);
     }
 
     @Override
     public Point save(Point point) {
         return pointJpaRepository.save(point);
-    }
-
-    @Override
-    public boolean existsByUserId(String userId) {
-        return pointJpaRepository.findByUserId(userId).isPresent();
     }
 
 }

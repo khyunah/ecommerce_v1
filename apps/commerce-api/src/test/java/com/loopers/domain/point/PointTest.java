@@ -1,5 +1,6 @@
 package com.loopers.domain.point;
 
+import com.loopers.support.error.CoreException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -15,7 +16,7 @@ public class PointTest {
         int point = 0;
 
         // when
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
+        CoreException exception = assertThrows(CoreException.class, () -> {
             Point.validatePoint(point);
         });
 

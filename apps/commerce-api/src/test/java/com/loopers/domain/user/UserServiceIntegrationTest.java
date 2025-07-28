@@ -36,14 +36,14 @@ class UserServiceIntegrationTest {
     @Test
     void savingUser_whenSuccessToJoin() {
         // given
-        User user = new User("userID", "asd123@gmail.com", LocalDate.parse("2000-03-12"), User.Gender.FEMALE);
+        User user = new User("loginID", "asd123@gmail.com", LocalDate.parse("2000-03-12"), User.Gender.FEMALE);
 
         // when
         User savedUser = userSpyService.register(user);
         // then
         assertAll(
                 () -> assertThat(savedUser).isNotNull(),
-                () -> assertThat(savedUser.getUserId()).isEqualTo(user.getUserId()),
+                () -> assertThat(savedUser.getLoginId()).isEqualTo(user.getLoginId()),
                 () -> assertThat(savedUser.getEmail()).isEqualTo(user.getEmail()),
                 () -> assertThat(savedUser.getBirthDate()).isEqualTo(user.getBirthDate()),
                 () -> assertThat(savedUser.getGender()).isEqualTo(user.getGender())
@@ -54,12 +54,12 @@ class UserServiceIntegrationTest {
 
     @DisplayName("이미 가입된 ID 로 회원가입 시도 시, 실패한다.")
     @Test
-    void failToJoin_whenAlreadyUserId() {
+    void failToJoin_whenAlreadyUserLoginId() {
         // given
-        String userID = "testId123";
-        User firstUser = new User(userID, "asd123@gmail.com", LocalDate.parse("2000-03-12"), User.Gender.FEMALE);
+        String loginId = "testId123";
+        User firstUser = new User(loginId, "asd123@gmail.com", LocalDate.parse("2000-03-12"), User.Gender.FEMALE);
         userSpyService.register(firstUser);
-        User secondUser = new User(userID, "qwer000@naver.com", LocalDate.parse("1999-12-01"), User.Gender.MALE);
+        User secondUser = new User(loginId, "qwer000@naver.com", LocalDate.parse("1999-12-01"), User.Gender.MALE);
 
         // when
         CoreException exception = assertThrows(CoreException.class, () -> {
@@ -71,35 +71,35 @@ class UserServiceIntegrationTest {
 
     }
 
-    @DisplayName("해당 ID 의 회원이 존재할 경우, 회원 정보가 반환된다.")
+    @DisplayName("해당 loginId 의 회원이 존재할 경우, 회원 정보가 반환된다.")
     @Test
-    void returnUserInfo_whenIdExists() {
+    void returnUserInfo_whenLoginIdExists() {
         // given
         User firstUser = new User("testId123", "asd123@gmail.com", LocalDate.parse("2000-03-12"), User.Gender.FEMALE);
         User saveUser = userSpyService.register(firstUser);
 
         // when
-        User selectUser = userSpyService.getById(saveUser.getId());
+        User selectUser = userSpyService.getByLoginId(saveUser.getLoginId());
 
         // then
         assertAll(
                 () -> assertThat(selectUser).isNotNull(),
                 () -> assertThat(selectUser.getId()).isEqualTo(saveUser.getId()),
-                () -> assertThat(selectUser.getUserId()).isEqualTo(saveUser.getUserId()),
+                () -> assertThat(selectUser.getLoginId()).isEqualTo(saveUser.getLoginId()),
                 () -> assertThat(selectUser.getEmail()).isEqualTo(saveUser.getEmail()),
                 () -> assertThat(selectUser.getBirthDate()).isEqualTo(saveUser.getBirthDate()),
                 () -> assertThat(selectUser.getGender()).isEqualTo(saveUser.getGender())
         );
     }
 
-    @DisplayName("해당 ID 의 회원이 존재하지 않을 경우, null 이 반환된다.")
+    @DisplayName("해당 loginId 의 회원이 존재하지 않을 경우, null 이 반환된다.")
     @Test
     void returnNull_whenNotFoundId() {
         // given
-        Long id = 1L;
+        String loginId = "test123";
 
         // when
-        User result = userSpyService.getById(id);
+        User result = userSpyService.getByLoginId(loginId);
 
         // then
         assertThat(result).isNull();

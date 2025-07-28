@@ -1,5 +1,7 @@
 package com.loopers.domain.user;
 
+import com.loopers.support.error.CoreException;
+import com.loopers.support.error.ErrorType;
 import jakarta.persistence.*;
 import lombok.Getter;
 
@@ -15,7 +17,7 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     @Column(nullable = false, unique = true)
-    private String userId;
+    private String loginId;
     @Column(nullable = false, unique = true)
     private String email;
     private LocalDate birthDate;
@@ -30,8 +32,11 @@ public class User {
     private static final Pattern EMAIL_PATTERN = Pattern.compile("^[\\w.-]+@[\\w.-]+\\.[a-zA-Z]{2,}$");
 
     public User(){}
-    public User(String userId, String email, LocalDate birthDate, Gender gender) {
-        this.userId =  userId;
+    public User(String loginId, String email, LocalDate birthDate, Gender gender) {
+        validateUserId(loginId);
+        validateEmail(email);
+        validateBirthDate(birthDate.toString());
+        this.loginId = loginId;
         this.email = email;
         this.birthDate = birthDate;
         this.gender = gender;
@@ -39,13 +44,13 @@ public class User {
 
     public static void validateUserId(String userId){
         if (!ID_PATTERN.matcher(userId).matches()){
-            throw new IllegalArgumentException("ID 가 영문 및 숫자 10자 이내 형식에 맞지 않습니다.");
+            throw new CoreException(ErrorType.BAD_REQUEST, "ID 가 영문 및 숫자 10자 이내 형식에 맞지 않습니다.");
         }
     }
 
     public static void validateEmail(String email) {
         if (!EMAIL_PATTERN.matcher(email).matches()){
-            throw new IllegalArgumentException("이메일이 xx@yy.zz 형식에 맞지 않습니다.");
+            throw new CoreException(ErrorType.BAD_REQUEST, "이메일이 xx@yy.zz 형식에 맞지 않습니다.");
         }
     }
 
@@ -53,7 +58,7 @@ public class User {
         try {
             LocalDate.parse(birthDate);
         } catch (Exception e) {
-            throw new IllegalArgumentException("이메일이 xx@yy.zz 형식에 맞지 않습니다.");
+            throw new CoreException(ErrorType.BAD_REQUEST, "생년월일이 YYYY-MM-DD 형식에 맞지 않습니다.");
         }
     }
 }

@@ -43,15 +43,15 @@ public class PointV1ApiE2ETest {
         @Test
         void returnsUserInfo_whenGetMyInfoSuccess() throws Exception {
             // given
-            String userId = "asd123";
+            Long refUserId = 1L;
             int point = 10000;
-            Point savePoint = pointRepository.save(new Point(userId,point));
+            Point savePoint = pointRepository.save(new Point(refUserId,point));
 
             // when & then
-            mockMvc.perform(get("/api/v1/points/"+savePoint.getUserId())
+            mockMvc.perform(get("/api/v1/points/"+savePoint.getRefUserId())
                             .contentType(MediaType.APPLICATION_JSON))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.userId").value(savePoint.getUserId()))
+                    .andExpect(jsonPath("$.refUserId").value(savePoint.getRefUserId()))
                     .andExpect(jsonPath("$.point").value(savePoint.getPoint()))
                     .andDo(print());
         }
@@ -60,9 +60,9 @@ public class PointV1ApiE2ETest {
         @Test
         void returns400BadRequest_whenIsNullGender() throws Exception {
             // given
-            String userId = "asd123";
+            Long refUserId = 1L;
             int amount = 1000;
-            PointV1Dto.PointChargeRequest request = new PointV1Dto.PointChargeRequest(userId,amount);
+            PointV1Dto.PointChargeRequest request = new PointV1Dto.PointChargeRequest(refUserId,amount);
 
             // when & then
             mockMvc.perform(post("/api/v1/points/charge")
@@ -80,10 +80,10 @@ public class PointV1ApiE2ETest {
         @Test
         void returnsTotalPoint_whenUserExistsAndCharges1000Won() throws Exception {
             // given
-            Point point = new Point("asd123",10000);
+            Point point = new Point(1L,10000);
             pointRepository.save(point);
             PointV1Dto.PointChargeRequest request = new PointV1Dto.PointChargeRequest(
-                    point.getUserId(),
+                    point.getRefUserId(),
                     1000
             );
             // when & then
@@ -91,7 +91,7 @@ public class PointV1ApiE2ETest {
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.userId").value(request.userId()))
+                    .andExpect(jsonPath("$.refUserId").value(request.refUserId()))
                     .andExpect(jsonPath("$.point").value(request.amount() + point.getPoint()))
                     .andDo(print());
         }
@@ -100,9 +100,9 @@ public class PointV1ApiE2ETest {
         @Test
         void returns400BadRequest_whenIsNullGender() throws Exception {
             // given
-            String userId = "asd123";
+            Long refUserId = 1L;
             int amount = 1000;
-            PointV1Dto.PointChargeRequest request = new PointV1Dto.PointChargeRequest(userId,amount);
+            PointV1Dto.PointChargeRequest request = new PointV1Dto.PointChargeRequest(refUserId,amount);
 
             // when & then
             mockMvc.perform(post("/api/v1/points/charge")
