@@ -43,7 +43,7 @@ class UserServiceIntegrationTest {
         // then
         assertAll(
                 () -> assertThat(savedUser).isNotNull(),
-                () -> assertThat(savedUser.getLoginId()).isEqualTo(user.getLoginId()),
+                () -> assertThat(savedUser.getUserId()).isEqualTo(user.getUserId()),
                 () -> assertThat(savedUser.getEmail()).isEqualTo(user.getEmail()),
                 () -> assertThat(savedUser.getBirthDate()).isEqualTo(user.getBirthDate()),
                 () -> assertThat(savedUser.getGender()).isEqualTo(user.getGender())
@@ -71,7 +71,7 @@ class UserServiceIntegrationTest {
 
     }
 
-    @DisplayName("해당 loginId 의 회원이 존재할 경우, 회원 정보가 반환된다.")
+    @DisplayName("해당 userId 의 회원이 존재할 경우, 회원 정보가 반환된다.")
     @Test
     void returnUserInfo_whenLoginIdExists() {
         // given
@@ -79,7 +79,7 @@ class UserServiceIntegrationTest {
         User saveUser = userSpyService.register(firstUser);
 
         // when
-        User selectUser = userSpyService.getByLoginId(saveUser.getLoginId().getValue());
+        User selectUser = userSpyService.getByLoginId(saveUser.getUserId().getValue());
 
         log.info("selectUser={}", selectUser.getEmail());
 
@@ -87,21 +87,21 @@ class UserServiceIntegrationTest {
         assertAll(
                 () -> assertThat(selectUser).isNotNull(),
                 () -> assertThat(selectUser.getId()).isEqualTo(saveUser.getId()),
-                () -> assertThat(selectUser.getLoginId()).isEqualTo(saveUser.getLoginId()),
+                () -> assertThat(selectUser.getUserId()).isEqualTo(saveUser.getUserId()),
                 () -> assertThat(selectUser.getEmail()).isEqualTo(saveUser.getEmail()),
                 () -> assertThat(selectUser.getBirthDate()).isEqualTo(saveUser.getBirthDate()),
                 () -> assertThat(selectUser.getGender()).isEqualTo(saveUser.getGender())
         );
     }
 
-    @DisplayName("해당 loginId 의 회원이 존재하지 않을 경우, null 이 반환된다.")
+    @DisplayName("해당 userId 의 회원이 존재하지 않을 경우, null 이 반환된다.")
     @Test
     void returnNull_whenNotFoundId() {
         // given
-        String loginId = "test123";
+        String userId = "test123";
 
         // when
-        User result = userSpyService.getByLoginId(loginId);
+        User result = userSpyService.getByLoginId(userId);
 
         // then
         assertThat(result).isNull();

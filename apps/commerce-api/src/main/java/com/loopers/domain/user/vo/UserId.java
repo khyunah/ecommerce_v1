@@ -1,4 +1,4 @@
-package com.loopers.domain.user.model;
+package com.loopers.domain.user.vo;
 
 import com.loopers.support.error.CoreException;
 import com.loopers.support.error.ErrorType;
@@ -12,21 +12,21 @@ import java.util.regex.Pattern;
 @Getter
 @ToString
 @Embeddable
-public class LoginId {
-    private static final Pattern ID_PATTERN = Pattern.compile("^(?=.*[A-Za-z])(?=.*\\d)[A-Za-z\\d]{1,10}$");
+public class UserId {
+    private static final Pattern ID_PATTERN = Pattern.compile("^[a-zA-Z0-9]{1,10}$");
 
-    @Column(name = "loginId")
+    @Column(name = "userId")
     private String value;
 
-    public LoginId() {}
+    public UserId() {}
 
-    private LoginId(String value) {
+    private UserId(String value) {
         this.value = value;
     }
 
-    public static LoginId from(String value) {
+    public static UserId from(String value) {
         validate(value);
-        return new LoginId(value);
+        return new UserId(value);
     }
 
     public static void validate(String value){

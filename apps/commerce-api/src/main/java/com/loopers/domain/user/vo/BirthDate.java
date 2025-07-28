@@ -1,4 +1,4 @@
-package com.loopers.domain.user.model;
+package com.loopers.domain.user.vo;
 
 import com.loopers.support.error.CoreException;
 import com.loopers.support.error.ErrorType;
@@ -8,7 +8,6 @@ import lombok.Getter;
 import lombok.ToString;
 
 import java.time.LocalDate;
-import java.util.regex.Pattern;
 
 @Getter
 @ToString

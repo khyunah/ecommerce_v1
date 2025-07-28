@@ -2,7 +2,7 @@ package com.loopers.infrastructure.user;
 
 import com.loopers.domain.user.User;
 import com.loopers.domain.user.UserRepository;
-import com.loopers.domain.user.model.LoginId;
+import com.loopers.domain.user.vo.UserId;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -15,8 +15,8 @@ public class UserRepositoryImpl implements UserRepository {
     private final UserJpaRepository userJpaRepository;
 
     @Override
-    public boolean existsByLoginId(LoginId loginId) {
-        return userJpaRepository.findByLoginId(loginId).isPresent();
+    public boolean existsByUserId(UserId userId) {
+        return userJpaRepository.findByUserId(userId).isPresent();
     }
 
     @Override
@@ -25,8 +25,8 @@ public class UserRepositoryImpl implements UserRepository {
     }
 
     @Override
-    public Optional<User> findByLoginId(LoginId loginId) {
-        return userJpaRepository.findByLoginId(loginId);
+    public Optional<User> findByUserId(UserId userId) {
+        return userJpaRepository.findByUserId(userId);
     }
 
 }

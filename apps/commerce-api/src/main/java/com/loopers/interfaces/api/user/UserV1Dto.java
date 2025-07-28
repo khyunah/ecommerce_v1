@@ -7,7 +7,7 @@ import jakarta.validation.constraints.NotBlank;
 public class UserV1Dto {
     public record UserRegisterRequest(
             @NotBlank(message = "아이디는 필수입니다.")
-            String loginId,
+            String userId,
             @NotBlank(message = "이메일은 필수입니다.")
             String email,
             @NotBlank(message = "생년월일은 필수입니다.")
@@ -17,7 +17,7 @@ public class UserV1Dto {
     ){
         public static UserRegisterCommand toCommand(UserRegisterRequest request) {
             return new UserRegisterCommand(
-                    request.loginId(),
+                    request.userId(),
                     request.email(),
                     request.birthDate(),
                     request.gender()
@@ -26,7 +26,7 @@ public class UserV1Dto {
     }
     public record UserInfoResponse(
             Long id,
-            String loginId,
+            String userId,
             String email,
             String birthDate,
             String gender
@@ -34,7 +34,7 @@ public class UserV1Dto {
         public static UserInfoResponse from(UserInfo userInfo) {
             return new UserInfoResponse(
                     userInfo.id(),
-                    userInfo.loginId(),
+                    userInfo.userId(),
                     userInfo.email(),
                     userInfo.birthDate(),
                     userInfo.gender()

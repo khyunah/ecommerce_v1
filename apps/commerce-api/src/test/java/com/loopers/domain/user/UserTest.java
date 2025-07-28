@@ -1,8 +1,8 @@
 package com.loopers.domain.user;
 
-import com.loopers.domain.user.model.BirthDate;
-import com.loopers.domain.user.model.Email;
-import com.loopers.domain.user.model.LoginId;
+import com.loopers.domain.user.vo.BirthDate;
+import com.loopers.domain.user.vo.Email;
+import com.loopers.domain.user.vo.UserId;
 import com.loopers.support.error.CoreException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -16,11 +16,11 @@ class UserTest {
     @Test
     void failToCreate_whenUnValidateUserId() {
         // given
-        String loginId = "abcd123456789";
+        String userId = "abcd123456789";
 
         // when
         CoreException exception = assertThrows(CoreException.class, () -> {
-           LoginId.validate(loginId);
+           UserId.validate(userId);
         });
 
         // then

@@ -1,11 +1,11 @@
 package com.loopers.domain.user;
 
-import com.loopers.domain.user.model.LoginId;
+import com.loopers.domain.user.vo.UserId;
 
 import java.util.Optional;
 
 public interface UserRepository {
-    boolean existsByLoginId(LoginId id);
+    boolean existsByUserId(UserId id);
     Optional<User> save(User user);
-    Optional<User> findByLoginId(LoginId loginId);
+    Optional<User> findByUserId(UserId userId);
 }

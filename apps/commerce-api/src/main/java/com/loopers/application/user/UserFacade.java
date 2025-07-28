@@ -4,12 +4,8 @@ import com.loopers.application.user.in.UserRegisterCommand;
 import com.loopers.application.user.out.UserInfo;
 import com.loopers.domain.user.User;
 import com.loopers.domain.user.UserService;
-import com.loopers.domain.user.model.Gender;
-import com.loopers.interfaces.api.user.UserV1Dto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
-
-import java.time.LocalDate;
 
 @RequiredArgsConstructor
 @Component

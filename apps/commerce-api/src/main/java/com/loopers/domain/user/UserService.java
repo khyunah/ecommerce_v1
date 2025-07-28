@@ -1,6 +1,6 @@
 package com.loopers.domain.user;
 
-import com.loopers.domain.user.model.LoginId;
+import com.loopers.domain.user.vo.UserId;
 import com.loopers.support.error.CoreException;
 import com.loopers.support.error.ErrorType;
 import jakarta.transaction.Transactional;
@@ -15,7 +15,7 @@ public class UserService {
 
     @Transactional
     public User register(User user) {
-        if(userRepository.existsByLoginId(user.getLoginId())){
+        if(userRepository.existsByUserId(user.getUserId())){
             throw new CoreException(ErrorType.CONFLICT, "이미 가입된 ID 입니다.");
         };
 
@@ -24,7 +24,7 @@ public class UserService {
     }
 
     public User getByLoginId(String loginId) {
-        return userRepository.findByLoginId(LoginId.from(loginId))
+        return userRepository.findByUserId(UserId.from(loginId))
                 .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "존재하지 않는 아이디입니다."));
     }
 

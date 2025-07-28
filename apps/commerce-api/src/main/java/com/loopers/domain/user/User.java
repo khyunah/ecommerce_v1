@@ -1,27 +1,20 @@
 package com.loopers.domain.user;
 
-import com.loopers.domain.user.model.BirthDate;
-import com.loopers.domain.user.model.Email;
-import com.loopers.domain.user.model.Gender;
-import com.loopers.domain.user.model.LoginId;
-import com.loopers.support.error.CoreException;
-import com.loopers.support.error.ErrorType;
+import com.loopers.domain.BaseEntity;
+import com.loopers.domain.user.vo.BirthDate;
+import com.loopers.domain.user.vo.Email;
+import com.loopers.domain.user.vo.Gender;
+import com.loopers.domain.user.vo.UserId;
 import jakarta.persistence.*;
 import lombok.Getter;
-
-import java.util.regex.Pattern;
 
 @Entity
 @Getter
 @Table(name = "user")
-public class User {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+public class User extends BaseEntity {
 
     @Column(nullable = false, unique = true)
-    private LoginId loginId;
+    private UserId userId;
 
     @Embedded
     @Column(nullable = false, unique = true)
@@ -37,16 +30,16 @@ public class User {
     public User() {
     }
 
-    public User(LoginId loginId, Email email, BirthDate birthDate, Gender gender) {
-        this.loginId = loginId;
+    public User(UserId userId, Email email, BirthDate birthDate, Gender gender) {
+        this.userId = userId;
         this.email = email;
         this.birthDate = birthDate;
         this.gender = gender;
     }
 
-    public static User from(String loginId, String email, String birthDate, String gender) {
+    public static User from(String userId, String email, String birthDate, String gender) {
         return new User(
-                LoginId.from(loginId),
+                UserId.from(userId),
                 Email.from(email),
                 BirthDate.from(birthDate),
                 Gender.from(gender)

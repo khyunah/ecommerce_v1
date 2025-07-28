@@ -14,8 +14,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
-import java.time.LocalDate;
-
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
@@ -55,7 +53,7 @@ class UserV1ApiE2ETest {
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isCreated())
-                    .andExpect(jsonPath("$.userId").value(request.loginId()))
+                    .andExpect(jsonPath("$.userId").value(request.userId()))
                     .andExpect(jsonPath("$.email").value(request.email()))
                     .andExpect(jsonPath("$.birthDate").value(request.birthDate()))
                     .andExpect(jsonPath("$.gender").value(request.gender()))
@@ -97,20 +95,20 @@ class UserV1ApiE2ETest {
             mockMvc.perform(get("/api/v1/users/me/"+user.getId())
                             .contentType(MediaType.APPLICATION_JSON))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.loginId").value(user.getLoginId()))
+                    .andExpect(jsonPath("$.loginId").value(user.getUserId()))
                     .andExpect(jsonPath("$.email").value(user.getEmail()))
                     .andExpect(jsonPath("$.birthDate").value(user.getBirthDate().toString()))
                     .andExpect(jsonPath("$.gender").value(user.getGender().name()))
                     .andDo(print());
         }
 
-        @DisplayName("존재하지 않는 loginId 로 조회할 경우, 404 Not Found 응답을 반환한다.")
+        @DisplayName("존재하지 않는 userId 로 조회할 경우, 404 Not Found 응답을 반환한다.")
         @Test
         void returns404NotFound_whenUserIdDoesNotExist() throws Exception {
             // given
-            String loginId = "test1111";
+            String userId = "test1111";
             // when & then
-            mockMvc.perform(get("/api/v1/users/me/"+loginId)
+            mockMvc.perform(get("/api/v1/users/me/"+userId)
                             .contentType(MediaType.APPLICATION_JSON))
                     .andExpect(status().isNotFound());
         }
