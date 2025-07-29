@@ -43,7 +43,8 @@ public class Product extends BaseEntity {
     private Long refBrandId;
 
     public static Product from(String name, String description, BigDecimal sellingPrice, BigDecimal originalPrice, String saleStatus, Long refBrandId) {
-        validate(name, sellingPrice, originalPrice);
+        validateName(name);
+        validateOriginalPriceAndSellingPrice(originalPrice,sellingPrice);
         return new Product(
                 name,
                 description,
@@ -54,17 +55,15 @@ public class Product extends BaseEntity {
         );
     }
 
-    public static void validate(String name, BigDecimal sellingPrice, BigDecimal originalPrice){
-        // 유효하지 않은 브랜드 ID 인 경우는 application 계층에서 하기
+    public static void validateName(String name){
+        if (name == null || name.isEmpty()){
+            throw new CoreException(ErrorType.BAD_REQUEST, "상품명은 null이거나 빈 문자열일 수 없습니다.");
+        }
+    }
 
-        // 원가보다 할인가가 높은 경우
+    public static void validateOriginalPriceAndSellingPrice(BigDecimal originalPrice, BigDecimal sellingPrice){
         if(originalPrice.compareTo(sellingPrice) < 0){
             throw new CoreException(ErrorType.BAD_REQUEST, "원가보다 할인가가 높을 수 없습니다.");
         }
-        // name이 null 인경우
-        else if (name == null || name.isEmpty()){
-            throw new CoreException(ErrorType.BAD_REQUEST, "상품명은 null이거나 빈 문자열일 수 없습니다.");
-        }
-
     }
 }
