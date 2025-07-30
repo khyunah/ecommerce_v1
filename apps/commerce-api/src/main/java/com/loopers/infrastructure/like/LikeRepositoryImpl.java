@@ -20,4 +20,9 @@ public class LikeRepositoryImpl implements LikeRepository {
         return likeJpaRepository.existsByRefUserIdAndRefProductId(refUserId, refProductId);
     }
 
+    @Override
+    public boolean delete(Long refUserId, Long refProductId) {
+        return likeJpaRepository.deleteByRefUserIdAndRefProductId(refUserId, refProductId);
+    }
+
 }

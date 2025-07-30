@@ -12,7 +12,12 @@ public class LikeService {
         // 상품당 1개의 좋아요만 가능 -> 멱등성 보장
         boolean isExisting = likeRepository.existsByRefUserIdAndRefProductId(like.getRefUserId(), like.getRefProductId());
         if(isExisting) return true;
-        
-        return likeRepository.save(like);
+        return likeRepository.save(like.getRefUserId(), like.getRefProductId());
+    }
+
+    public boolean delete(Like like) {
+        boolean isExisting = likeRepository.existsByRefUserIdAndRefProductId(like.getRefUserId(), like.getRefProductId());
+        if(!isExisting) return true;
+        return likeRepository.delete(like.getRefUserId(), like.getRefProductId());
     }
 }

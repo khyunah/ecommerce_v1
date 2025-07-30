@@ -1,25 +1,25 @@
 package com.loopers.interfaces.api.like;
 
-import com.loopers.application.like.in.LikeCreateCommand;
+import com.loopers.application.like.in.LikeActionCommand;
 
 public class LikeV1Dto {
-    public record LikeCreateRequest(
+    public record LikeActionRequest(
             Long refProductId
     ){
-        public static LikeCreateCommand toCommand(LikeCreateRequest request, Long refUserId) {
-            return new LikeCreateCommand(
+        public static LikeActionCommand toCommand(LikeActionRequest request, Long refUserId) {
+            return new LikeActionCommand(
                     request.refProductId,
                     refUserId
             );
         }
     }
 
-    public record LikeCreateResponse(
+    public record LikeActionResponse(
             Long refProductId,
             boolean isLiked
     ) {
-        public static LikeCreateResponse from(LikeCreateCommand command, boolean isLiked) {
-            return new LikeCreateResponse(
+        public static LikeActionResponse from(LikeActionCommand command, boolean isLiked) {
+            return new LikeActionResponse(
                     command.refProductId(),
                     isLiked
             );
