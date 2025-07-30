@@ -14,4 +14,8 @@ public class ProductService {
         return productRepository.findById(id)
                 .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "상품 ID가 존재하지 않습니다."));
     }
+
+    public boolean existsById(Long id) {
+        return productRepository.existsById(id);
+    }
 }
