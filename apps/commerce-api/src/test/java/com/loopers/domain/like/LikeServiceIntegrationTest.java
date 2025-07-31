@@ -4,33 +4,41 @@ import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
-import java.util.*;
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 @SpringBootTest
 @Transactional
 public class LikeServiceIntegrationTest {
 
-    private LikeService likeService;
-    private StubLikeRepository stubLikeRepository;
+    private LikeService likeSpyService;
+    @Autowired
+    private LikeRepository likeRepository;
 
     @BeforeEach
     void setUp() {
-        stubLikeRepository = new StubLikeRepository();
-        likeService = new LikeService(stubLikeRepository);
+        LikeService realService = new LikeService(likeRepository);
+        likeSpyService = Mockito.spy(realService);
     }
 
     @DisplayName("좋아요 등록 요청 시, 처음이면 저장되고 true가 반환된다.")
     @Test
     void returnTrue_whenLikeIsSavedFirstTime() {
         // given
-        Like like = new Like(1L, 100L); // userId=1, productId=100
+        Like like = new Like(1L, 101L);
 
         // when
-        boolean result = likeService.create(like);
+        boolean result = likeSpyService.create(like);
 
         // then
         assertThat(result).isTrue();
@@ -41,44 +49,13 @@ public class LikeServiceIntegrationTest {
     void returnTrue_whenLikeAlreadyExists() {
         // given
         Like like = new Like(1L, 100L);
-        stubLikeRepository.save(like);
+        likeRepository.save(like);
 
         // when
-        boolean result = likeService.create(like);
+        boolean result = likeSpyService.create(like);
 
         // then
         assertThat(result).isTrue();
     }
 
-}
-
-class StubLikeRepository implements LikeRepository {
-    // Map<refUserId, Set<refProductId>>
-    private final Map<Long, Set<Long>> store = new HashMap<>();
-
-    @Override
-    public Like save(Like like) {
-        Long refUserId = like.getRefUserId();
-        Long refProductId = like.getRefProductId();
-
-        store.computeIfAbsent(refUserId, k -> new HashSet<>());
-        store.get(refUserId).add(refProductId);
-        return like;
-    }
-
-    @Override
-    public boolean existsByRefUserIdAndRefProductId(Long refUserId, Long refProductId) {
-        return store.getOrDefault(refUserId, Collections.emptySet()).contains(refProductId);
-    }
-
-    @Override
-    public boolean delete(Long refUserId, Long refProductId) {
-        Set<Long> productSet = store.get(refUserId);
-        if (productSet == null) return false;
-        boolean removed = productSet.remove(refProductId);
-        if (productSet.isEmpty()) {
-            store.remove(refUserId);
-        }
-        return removed;
-    }
 }

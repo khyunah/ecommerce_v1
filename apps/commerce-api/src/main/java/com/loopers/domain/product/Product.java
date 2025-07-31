@@ -34,7 +34,6 @@ public class Product extends BaseEntity {
     @AttributeOverride(name = "value", column = @Column(name = "selling_price", nullable = false))
     private Money sellingPrice;
 
-    @Embedded
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     private SaleStatus saleStatus;

@@ -22,4 +22,9 @@ public class ProductRepositoryImpl implements ProductRepository {
     public boolean existsById(Long id) {
         return productJpaRepository.existsById(id);
     }
+
+    @Override
+    public Product save(Product product) {
+        return productJpaRepository.save(product);
+    }
 }
