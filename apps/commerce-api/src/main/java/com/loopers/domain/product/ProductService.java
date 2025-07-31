@@ -1,8 +1,11 @@
 package com.loopers.domain.product;
 
+import com.loopers.interfaces.api.product.ProductWithLikeCountDto;
 import com.loopers.support.error.CoreException;
 import com.loopers.support.error.ErrorType;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 
 @RequiredArgsConstructor
@@ -17,5 +20,9 @@ public class ProductService {
 
     public boolean existsById(Long id) {
         return productRepository.existsById(id);
+    }
+
+    public Page<ProductWithLikeCountDto> getProducts(Long brandId, Pageable pageable) {
+        return productRepository.findProductsWithLikeCount(brandId, pageable);
     }
 }

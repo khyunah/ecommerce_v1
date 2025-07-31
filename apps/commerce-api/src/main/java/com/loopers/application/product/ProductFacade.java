@@ -5,7 +5,10 @@ import com.loopers.domain.brand.Brand;
 import com.loopers.domain.brand.BrandService;
 import com.loopers.domain.product.Product;
 import com.loopers.domain.product.ProductService;
+import com.loopers.interfaces.api.product.ProductWithLikeCountDto;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 
 @RequiredArgsConstructor
@@ -18,5 +21,9 @@ public class ProductFacade {
         Product product = productService.getDetail(productId);
         Brand brand = brandService.get(productId);
         return ProductDetailInfo.from(product, brand);
+    }
+
+    public Page<ProductWithLikeCountDto> getProducts(Long brandId, Pageable pageable) {
+        return productService.getProducts(brandId, pageable);
     }
 }

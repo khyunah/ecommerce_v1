@@ -1,11 +1,14 @@
 package com.loopers.domain.product;
 
+import com.loopers.interfaces.api.product.ProductWithLikeCountDto;
 import com.loopers.support.error.CoreException;
 import com.loopers.support.error.ErrorType;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.math.BigDecimal;
 import java.util.HashMap;
@@ -114,6 +117,11 @@ class ProductRepositoryStub implements ProductRepository {
 
     @Override
     public Product save(Product product) {
+        return null;
+    }
+
+    @Override
+    public Page<ProductWithLikeCountDto> findProductsWithLikeCount(Long brandId, Pageable pageable) {
         return null;
     }
 }
