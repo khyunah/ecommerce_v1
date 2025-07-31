@@ -1,6 +1,9 @@
 package com.loopers.domain.like;
 
+import com.loopers.domain.like.dto.LikedProductDto;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 
 @RequiredArgsConstructor
@@ -13,12 +16,17 @@ public class LikeService {
         boolean isExisting = likeRepository.existsByRefUserIdAndRefProductId(like.getRefUserId(), like.getRefProductId());
         if(isExisting) return true;
         Like savedLike = likeRepository.save(like);
-        return savedLike.getId().equals(like.getId());
+
+        return savedLike.getRefUserId().equals(like.getRefUserId());
     }
 
     public boolean delete(Like like) {
         boolean isExisting = likeRepository.existsByRefUserIdAndRefProductId(like.getRefUserId(), like.getRefProductId());
         if(!isExisting) return true;
         return likeRepository.delete(like.getRefUserId(), like.getRefProductId());
+    }
+
+    public Page<LikedProductDto> getLikedProducts(Long refUserId, Pageable pageable) {
+        return likeRepository.findLikedProductsByRefUserId(refUserId, pageable);
     }
 }
