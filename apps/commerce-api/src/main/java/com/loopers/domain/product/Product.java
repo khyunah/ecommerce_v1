@@ -27,11 +27,11 @@ public class Product extends BaseEntity {
     private String description;
 
     @Embedded
-    @Column(name = "original_price", nullable = false)
+    @AttributeOverride(name = "value", column = @Column(name = "original_price", nullable = false))
     private Money originalPrice;
 
     @Embedded
-    @Column(name = "selling_price", nullable = false)
+    @AttributeOverride(name = "value", column = @Column(name = "selling_price", nullable = false))
     private Money sellingPrice;
 
     @Embedded
