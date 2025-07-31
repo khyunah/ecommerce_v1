@@ -1,7 +1,7 @@
 package com.loopers.domain.like;
 
 public interface LikeRepository {
-    boolean save(Long refUserId, Long refProductId);
+    Like save(Like like);
     boolean existsByRefUserIdAndRefProductId(Long refUserId, Long refProductId);
     boolean delete(Long refUserId, Long refProductId);
 }
