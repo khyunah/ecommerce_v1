@@ -9,4 +9,5 @@ public interface LikeRepository {
     boolean existsByRefUserIdAndRefProductId(Long refUserId, Long refProductId);
     boolean delete(Long refUserId, Long refProductId);
     Page<LikedProductDto> findLikedProductsByRefUserId(Long refUserId, Pageable pageable);
+    long countLikeByProductId(Long productId);
 }

@@ -1,11 +1,15 @@
 package com.loopers.domain.product;
 
+import com.loopers.domain.point.PointRepository;
+import com.loopers.domain.point.PointService;
 import com.loopers.interfaces.api.product.ProductWithLikeCountDto;
 import com.loopers.support.error.CoreException;
 import com.loopers.support.error.ErrorType;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -20,13 +24,15 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @SpringBootTest
 public class ProductServiceIntegrationTest {
-    private ProductService productService;
-    private ProductRepositoryStub stubRepository;
+
+    private ProductService productSpyService;
+    @Autowired
+    private ProductRepository productRepository;
 
     @BeforeEach
     void setUp() {
-        stubRepository = new ProductRepositoryStub();
-        productService = new ProductService(stubRepository);
+        ProductService realService = new ProductService(productRepository);
+        productSpyService = Mockito.spy(realService);
     }
 
     @DisplayName("상품 ID가 존재할 경우, 상품 상세가 반환된다.")
@@ -34,6 +40,7 @@ public class ProductServiceIntegrationTest {
     void returnProductDetail_whenIdExists() {
         // given
         Long productId = 1L;
+        Long likeCount = 1L;
         Product product = Product.from(
                 "상품명",
                 "상품 설명",
@@ -42,10 +49,10 @@ public class ProductServiceIntegrationTest {
                 "ON_SALE",
                 1L
         );
-        stubRepository.save(product, productId);
+        productRepository.save(product);
 
         // when
-        Product found = productService.getDetail(productId);
+        Product found = productSpyService.getDetail(productId);
 
         // then
         assertThat(found.getName()).isEqualTo("상품명");
@@ -60,7 +67,7 @@ public class ProductServiceIntegrationTest {
 
         // when
         CoreException exception = assertThrows(CoreException.class, () -> {
-            productService.getDetail(nonExistentId);
+            productSpyService.getDetail(nonExistentId);
         });
 
         // then
@@ -74,10 +81,10 @@ public class ProductServiceIntegrationTest {
         // given
         Long id = 1L;
         Product product = Product.from("상품", "설명", new BigDecimal("9000"), new BigDecimal("10000"), "ON_SALE", 1L);
-        stubRepository.save(product, id);
+        productRepository.save(product);
 
         // when
-        boolean exists = productService.existsById(id);
+        boolean exists = productSpyService.existsById(id);
 
         // then
         assertThat(exists).isTrue();
@@ -90,38 +97,9 @@ public class ProductServiceIntegrationTest {
         Long id = 100L;
 
         // when
-        boolean exists = productService.existsById(id);
+        boolean exists = productSpyService.existsById(id);
 
         // then
         assertThat(exists).isFalse();
-    }
-}
-
-
-class ProductRepositoryStub implements ProductRepository {
-    private final Map<Long, Product> store = new HashMap<>();
-
-    public void save(Product product, Long id) {
-        store.put(id, product);
-    }
-
-    @Override
-    public Optional<Product> findById(Long id) {
-        return Optional.ofNullable(store.get(id));
-    }
-
-    @Override
-    public boolean existsById(Long id) {
-        return store.containsKey(id);
-    }
-
-    @Override
-    public Product save(Product product) {
-        return null;
-    }
-
-    @Override
-    public Page<ProductWithLikeCountDto> findProductsWithLikeCount(Long brandId, Pageable pageable) {
-        return null;
     }
 }

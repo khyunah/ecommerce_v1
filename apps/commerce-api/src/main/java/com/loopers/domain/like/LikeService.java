@@ -29,4 +29,9 @@ public class LikeService {
     public Page<LikedProductDto> getLikedProducts(Long refUserId, Pageable pageable) {
         return likeRepository.findLikedProductsByRefUserId(refUserId, pageable);
     }
+
+    public long countLikeByProductId(Long productId) {
+        return likeRepository.countLikeByProductId(productId);
+
+    }
 }

@@ -18,6 +18,7 @@ import org.springframework.stereotype.Component;
 import java.util.List;
 
 import static com.querydsl.jpa.JPAExpressions.select;
+
 @RequiredArgsConstructor
 @Component
 public class LikeRepositoryImpl implements LikeRepository {
@@ -77,6 +78,16 @@ public class LikeRepositoryImpl implements LikeRepository {
                 .fetchOne();
 
         return new PageImpl<>(content, pageable, total);
+    }
+
+    @Override
+    public long countLikeByProductId(Long productId) {
+        QLike like = QLike.like;
+        return queryFactory
+                .select(like.count())
+                .from(like)
+                .where(like.refProductId.eq(productId))
+                .fetchOne();
     }
 
 }
