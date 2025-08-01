@@ -38,4 +38,12 @@ public class Balance {
         validate(amount);
         return new Balance(amount + point.getBalance().getValue());
     }
+
+    public static Balance minus(Point point, long amount) {
+        long current = point.getBalance().getValue();
+        if (current < amount) {
+            throw new IllegalArgumentException("차감할 수 있는 포인트가 부족합니다.");
+        }
+        return new Balance(current - amount);
+    }
 }
