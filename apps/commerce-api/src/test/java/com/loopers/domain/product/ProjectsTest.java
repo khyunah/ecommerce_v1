@@ -1,13 +1,5 @@
 package com.loopers.domain.product;
 
-import static org.junit.jupiter.api.Assertions.*;
-
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.when;
-
-import com.loopers.domain.product.ProductRepository;
-import com.loopers.domain.product.ProductService;
 import com.loopers.domain.product.vo.SaleStatus;
 import com.loopers.interfaces.api.product.ProductWithLikeCountDto;
 import org.junit.jupiter.api.BeforeEach;
@@ -25,6 +17,8 @@ import java.math.BigDecimal;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.when;
 
 class ProductsTest {
     @Mock

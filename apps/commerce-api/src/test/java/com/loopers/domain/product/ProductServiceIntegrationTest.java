@@ -1,8 +1,5 @@
 package com.loopers.domain.product;
 
-import com.loopers.domain.point.PointRepository;
-import com.loopers.domain.point.PointService;
-import com.loopers.interfaces.api.product.ProductWithLikeCountDto;
 import com.loopers.support.error.CoreException;
 import com.loopers.support.error.ErrorType;
 import org.junit.jupiter.api.BeforeEach;
@@ -11,13 +8,8 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 
 import java.math.BigDecimal;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;

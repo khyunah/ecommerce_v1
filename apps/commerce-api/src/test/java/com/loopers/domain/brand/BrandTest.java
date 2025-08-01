@@ -1,13 +1,12 @@
 package com.loopers.domain.brand;
 
-import com.loopers.domain.stock.Stock;
 import com.loopers.support.error.CoreException;
 import com.loopers.support.error.ErrorType;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class BrandTest {
 

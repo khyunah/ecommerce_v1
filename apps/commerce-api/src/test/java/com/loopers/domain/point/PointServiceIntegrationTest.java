@@ -1,6 +1,5 @@
 package com.loopers.domain.point;
 
-import com.loopers.domain.user.vo.UserId;
 import com.loopers.support.error.CoreException;
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.BeforeEach;

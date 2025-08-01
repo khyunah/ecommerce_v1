@@ -2,7 +2,6 @@ package com.loopers.interfaces.api.point;
 
 import com.loopers.application.point.in.PointChargeCommand;
 import com.loopers.application.point.out.PointInfo;
-import com.loopers.interfaces.api.user.UserV1Dto;
 
 public class PointV1Dto {
     public record PointChargeRequest(

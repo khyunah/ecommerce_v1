@@ -1,7 +1,6 @@
 package com.loopers.domain.point.vo;
 
 import com.loopers.domain.point.Point;
-import com.loopers.domain.user.vo.Email;
 import com.loopers.support.error.CoreException;
 import com.loopers.support.error.ErrorType;
 import jakarta.persistence.Column;
