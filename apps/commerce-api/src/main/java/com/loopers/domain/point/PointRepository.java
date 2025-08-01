@@ -7,4 +7,5 @@ import java.util.Optional;
 public interface PointRepository {
     Optional<Point> findByRefUserId(UserId refUserId);
     Point save(Point point);
+    void deduct(String userId, long amount);
 }

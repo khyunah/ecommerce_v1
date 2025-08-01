@@ -4,8 +4,6 @@ import com.loopers.application.point.in.PointChargeCommand;
 import com.loopers.application.point.out.PointInfo;
 import com.loopers.domain.point.Point;
 import com.loopers.domain.point.PointService;
-import com.loopers.domain.user.vo.UserId;
-import com.loopers.interfaces.api.point.PointV1Dto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
