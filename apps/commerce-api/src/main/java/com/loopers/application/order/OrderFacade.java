@@ -73,4 +73,20 @@ public class OrderFacade {
         externalOrderSender.sendOrder(order);
         return order;
     }
+
+    public List<OrderSummaryResult> getOrders(Long refUserId) {
+        List<Order> orders = orderRepository.findAllByUserId(refUserId);
+
+        return orders.stream()
+                .flatMap(order -> order.getOrderItems().stream().map(item ->
+                        new OrderSummaryResult(
+                                order.getId(),
+                                order.getOrderStatus().name(),
+                                order.getCreatedAt().toLocalDateTime(),
+                                item.getSellingPrice().getValue(),
+                                item.getProductId()
+                        )
+                ))
+                .toList();
+    }
 }

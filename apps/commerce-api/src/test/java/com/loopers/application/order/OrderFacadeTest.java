@@ -1,9 +1,6 @@
 package com.loopers.application.order;
 
-import com.loopers.domain.order.ExternalOrderSender;
-import com.loopers.domain.order.Order;
-import com.loopers.domain.order.OrderItem;
-import com.loopers.domain.order.OrderRepository;
+import com.loopers.domain.order.*;
 import com.loopers.domain.point.Point;
 import com.loopers.domain.point.PointRepository;
 import com.loopers.domain.product.Product;
@@ -24,8 +21,12 @@ import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.Optional;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 @ExtendWith(MockitoExtension.class)
 class OrderFacadeTest {
@@ -96,5 +97,53 @@ class OrderFacadeTest {
         Mockito.verify(pointRepository).save(Mockito.any(Point.class));
         Mockito.verify(orderRepository).save(Mockito.any(Order.class));
         Mockito.verify(externalOrderSender).sendOrder(Mockito.any(Order.class));
+    }
+
+    @Test
+    @DisplayName("주문 목록 조회 성공 - 주문 2건, 각 주문에 상품 2개 포함")
+    void getOrders_success() {
+        // given
+//        UserId userId = UserId.from("user123");
+        Long userId = 1L;
+
+        Order order1 = createOrder(1L, OrderStatus.ORDERED, LocalDateTime.of(2025, 8, 1, 10, 0),
+                List.of(
+                        createItem(1L, 5000),
+                        createItem(2L, 7000)
+                ));
+
+        Order order2 = createOrder(2L, OrderStatus.DELIVERED, LocalDateTime.of(2025, 8, 2, 15, 30),
+                List.of(
+                        createItem(3L, 3000),
+                        createItem(4L, 4000)
+                ));
+
+        Mockito.when(orderRepository.findAllByUserId(userId)).thenReturn(List.of(order1, order2));
+
+        // when
+        List<OrderSummaryResult> result = orderFacade.getOrders(userId);
+
+        // then
+        assertThat(result).hasSize(4);
+        assertThat(result).extracting(OrderSummaryResult::productId)
+                .containsExactlyInAnyOrder(1L, 2L, 3L, 4L);
+        assertThat(result).extracting(OrderSummaryResult::status)
+                .contains("ORDERED", "DELIVERED");
+    }
+
+    private Order createOrder(Long orderId, OrderStatus status, LocalDateTime orderedAt, List<OrderItem> items) {
+        Order order = Mockito.mock(Order.class);
+        Mockito.when(order.getId()).thenReturn(orderId);
+        Mockito.when(order.getOrderStatus()).thenReturn(status);
+        Mockito.when(order.getCreatedAt()).thenReturn(orderedAt.atZone(ZoneId.of("Asia/Seoul")));
+        Mockito.when(order.getOrderItems()).thenReturn(items);
+        return order;
+    }
+
+    private OrderItem createItem(Long productId, int price) {
+        OrderItem item = Mockito.mock(OrderItem.class);
+        Mockito.when(item.getProductId()).thenReturn(productId);
+        Mockito.when(item.getSellingPrice()).thenReturn(Money.from(BigDecimal.valueOf(price)));
+        return item;
     }
 }
