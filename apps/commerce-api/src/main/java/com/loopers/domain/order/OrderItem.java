@@ -15,19 +15,25 @@ import lombok.NoArgsConstructor;
 public class OrderItem extends BaseEntity {
     @Column(nullable = false)
     private Long productId;
+
     @Column(nullable = false)
     private int quantity;
+
+    @Column(nullable = false)
+    private String productName;
+
     @Embedded
     @AttributeOverride(name = "value", column = @Column(name = "selling_price", nullable = false))
     private Money sellingPrice;
+
     @Embedded
     @AttributeOverride(name = "value", column = @Column(name = "original_price", nullable = false))
     private Money originalPrice;
 
-    public static OrderItem create(Long productId, int quantity, Money sellingPrice, Money originalPrice) {
+    public static OrderItem create(Long productId, int quantity, String productName, Money sellingPrice, Money originalPrice) {
         if(quantity <= 0) {
             throw new IllegalArgumentException("수량은 1 이상이어야 합니다.");
         }
-        return new OrderItem(productId, quantity, sellingPrice, originalPrice);
+        return new OrderItem(productId, quantity, productName, sellingPrice, originalPrice);
     }
 }

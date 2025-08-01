@@ -63,6 +63,7 @@ public class OrderFacade {
                     return OrderItem.create(
                             product.getId(),
                             req.quantity(),
+                            product.getName(),
                             product.getSellingPrice(),
                             product.getOriginalPrice());
                 }).toList();
@@ -88,5 +89,21 @@ public class OrderFacade {
                         )
                 ))
                 .toList();
+    }
+
+    public OrderDetailResult getOrderDetail(Long userId, Long orderId) {
+        Order order = orderRepository.findByIdAndUserId(orderId, userId)
+                .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "주문을 찾을 수 없습니다."));
+
+        List<OrderDetailResult.OrderItemDetail> items = order.getOrderItems().stream()
+                .map(item -> new OrderDetailResult.OrderItemDetail(
+                        item.getProductName(),
+                        item.getQuantity(),
+                        item.getOriginalPrice().getValue(),
+                        item.getSellingPrice().getValue()
+                ))
+                .toList();
+
+        return new OrderDetailResult(order.getId(), order.getOrderStatus().name(), items);
     }
 }

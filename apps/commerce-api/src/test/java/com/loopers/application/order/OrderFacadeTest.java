@@ -11,6 +11,7 @@ import com.loopers.domain.stock.StockRepository;
 import com.loopers.domain.user.User;
 import com.loopers.domain.user.UserRepository;
 import com.loopers.domain.user.vo.UserId;
+import com.loopers.support.error.CoreException;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -27,6 +28,9 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class OrderFacadeTest {
@@ -70,24 +74,24 @@ class OrderFacadeTest {
         User user = User.from("test123", "test@naver.com", "2000-12-28", "F");
         Point point = Point.from("test123", 30000L);
         Order dummyOrder = Order.create(userId, List.of(
-                OrderItem.create(10L, 2, Money.from(BigDecimal.valueOf(3000L)), Money.from(BigDecimal.valueOf(3000L))),
-                OrderItem.create(11L, 3, Money.from(BigDecimal.valueOf(3000L)), Money.from(BigDecimal.valueOf(3000L))),
-                OrderItem.create(12L, 1, Money.from(BigDecimal.valueOf(3000L)), Money.from(BigDecimal.valueOf(3000L)))
+                OrderItem.create(10L, 2, "티셔츠1", Money.from(BigDecimal.valueOf(3000L)), Money.from(BigDecimal.valueOf(3000L))),
+                OrderItem.create(11L, 3, "티셔츠2", Money.from(BigDecimal.valueOf(3000L)), Money.from(BigDecimal.valueOf(3000L))),
+                OrderItem.create(12L, 1, "티셔츠3", Money.from(BigDecimal.valueOf(3000L)), Money.from(BigDecimal.valueOf(3000L)))
         ));
 
         // when
-        Mockito.when(userRepository.findByUserId(userIdVo)).thenReturn(Optional.of(user));
+        when(userRepository.findByUserId(userIdVo)).thenReturn(Optional.of(user));
 
-        Mockito.when(stockRepository.findByRefProductId(10L)).thenReturn(Optional.of(stock1));
-        Mockito.when(stockRepository.findByRefProductId(11L)).thenReturn(Optional.of(stock2));
-        Mockito.when(stockRepository.findByRefProductId(12L)).thenReturn(Optional.of(stock3));
+        when(stockRepository.findByRefProductId(10L)).thenReturn(Optional.of(stock1));
+        when(stockRepository.findByRefProductId(11L)).thenReturn(Optional.of(stock2));
+        when(stockRepository.findByRefProductId(12L)).thenReturn(Optional.of(stock3));
 
-        Mockito.when(productRepository.findById(10L)).thenReturn(Optional.of(product1));
-        Mockito.when(productRepository.findById(11L)).thenReturn(Optional.of(product2));
-        Mockito.when(productRepository.findById(12L)).thenReturn(Optional.of(product3));
+        when(productRepository.findById(10L)).thenReturn(Optional.of(product1));
+        when(productRepository.findById(11L)).thenReturn(Optional.of(product2));
+        when(productRepository.findById(12L)).thenReturn(Optional.of(product3));
 
-        Mockito.when(pointRepository.findByRefUserId(userIdVo)).thenReturn(Optional.of(point));
-        Mockito.when(orderRepository.save(Mockito.any(Order.class))).thenReturn(dummyOrder);
+        when(pointRepository.findByRefUserId(userIdVo)).thenReturn(Optional.of(point));
+        when(orderRepository.save(Mockito.any(Order.class))).thenReturn(dummyOrder);
 
         Order order = orderFacade.placeOrder(userIdVo.getValue(), items, pointsToUse);
 
@@ -118,7 +122,7 @@ class OrderFacadeTest {
                         createItem(4L, 4000)
                 ));
 
-        Mockito.when(orderRepository.findAllByUserId(userId)).thenReturn(List.of(order1, order2));
+        when(orderRepository.findAllByUserId(userId)).thenReturn(List.of(order1, order2));
 
         // when
         List<OrderSummaryResult> result = orderFacade.getOrders(userId);
@@ -132,18 +136,71 @@ class OrderFacadeTest {
     }
 
     private Order createOrder(Long orderId, OrderStatus status, LocalDateTime orderedAt, List<OrderItem> items) {
-        Order order = Mockito.mock(Order.class);
-        Mockito.when(order.getId()).thenReturn(orderId);
-        Mockito.when(order.getOrderStatus()).thenReturn(status);
-        Mockito.when(order.getCreatedAt()).thenReturn(orderedAt.atZone(ZoneId.of("Asia/Seoul")));
-        Mockito.when(order.getOrderItems()).thenReturn(items);
+        Order order = mock(Order.class);
+        when(order.getId()).thenReturn(orderId);
+        when(order.getOrderStatus()).thenReturn(status);
+        when(order.getCreatedAt()).thenReturn(orderedAt.atZone(ZoneId.of("Asia/Seoul")));
+        when(order.getOrderItems()).thenReturn(items);
         return order;
     }
 
     private OrderItem createItem(Long productId, int price) {
-        OrderItem item = Mockito.mock(OrderItem.class);
-        Mockito.when(item.getProductId()).thenReturn(productId);
-        Mockito.when(item.getSellingPrice()).thenReturn(Money.from(BigDecimal.valueOf(price)));
+        OrderItem item = mock(OrderItem.class);
+        when(item.getProductId()).thenReturn(productId);
+        when(item.getSellingPrice()).thenReturn(Money.from(BigDecimal.valueOf(price)));
         return item;
     }
+
+    @Test
+    @DisplayName("주문 상세 조회 성공")
+    void getOrderDetail_success() {
+        // given
+        Long userId = 1L;
+        Long orderId = 100L;
+
+        OrderItem item1 = mock(OrderItem.class);
+        when(item1.getProductName()).thenReturn("상품 A");
+        when(item1.getQuantity()).thenReturn(2);
+        when(item1.getOriginalPrice()).thenReturn(Money.from(BigDecimal.valueOf(10000)));
+        when(item1.getSellingPrice()).thenReturn(Money.from(BigDecimal.valueOf(8000)));
+
+        OrderItem item2 = mock(OrderItem.class);
+        when(item2.getProductName()).thenReturn("상품 B");
+        when(item2.getQuantity()).thenReturn(1);
+        when(item2.getOriginalPrice()).thenReturn(Money.from(BigDecimal.valueOf(20000)));
+        when(item2.getSellingPrice()).thenReturn(Money.from(BigDecimal.valueOf(15000)));
+
+        Order order = mock(Order.class);
+        when(order.getId()).thenReturn(orderId);
+        when(order.getOrderStatus()).thenReturn(OrderStatus.DELIVERED);
+        when(order.getOrderItems()).thenReturn(List.of(item1, item2));
+
+        when(orderRepository.findByIdAndUserId(orderId, userId)).thenReturn(Optional.of(order));
+
+        // when
+        OrderDetailResult result = orderFacade.getOrderDetail(userId, orderId);
+
+        // then
+        assertThat(result.orderId()).isEqualTo(orderId);
+        assertThat(result.orderStatus()).isEqualTo("DELIVERED");
+        assertThat(result.items()).hasSize(2);
+        assertThat(result.items()).extracting("productName")
+                .containsExactlyInAnyOrder("상품 A", "상품 B");
+    }
+
+    @Test
+    @DisplayName("주문 상세 조회 실패 - 존재하지 않는 주문")
+    void getOrderDetail_notFound() {
+        // given
+        Long userId = 1L;
+        Long orderId = 999L;
+
+        when(orderRepository.findByIdAndUserId(orderId, userId)).thenReturn(Optional.empty());
+
+        // when & then
+        assertThatThrownBy(() -> orderFacade.getOrderDetail(userId, orderId))
+                .isInstanceOf(CoreException.class)
+                .hasMessage("주문을 찾을 수 없습니다.");
+    }
+
 }
