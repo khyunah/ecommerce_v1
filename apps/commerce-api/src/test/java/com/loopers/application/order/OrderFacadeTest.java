@@ -3,6 +3,7 @@ package com.loopers.application.order;
 import com.loopers.domain.order.*;
 import com.loopers.domain.point.Point;
 import com.loopers.domain.point.PointRepository;
+import com.loopers.domain.point.vo.Balance;
 import com.loopers.domain.product.Product;
 import com.loopers.domain.product.ProductRepository;
 import com.loopers.domain.product.vo.Money;
@@ -14,6 +15,7 @@ import com.loopers.domain.user.vo.UserId;
 import com.loopers.support.error.CoreException;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -29,6 +31,8 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -49,6 +53,93 @@ class OrderFacadeTest {
     private PointRepository pointRepository;
     @Mock
     private ExternalOrderSender externalOrderSender;
+
+    private final Long globalProductId = 1L;
+    private final OrderItemResult globalOrderItem = new OrderItemResult(globalProductId, 2);
+    private final List<OrderItemResult> globalOrderItems = List.of(globalOrderItem);
+
+    private final UserId globalUserId = UserId.from("123");
+    private final String globalUserIdStr = "123";
+
+    @Nested
+    class OrderActionExceptionTest {
+        @Test
+        void 사용자없으면_예외발생() {
+            when(userRepository.findByUserId(globalUserId)).thenReturn(Optional.empty());
+
+            CoreException ex = assertThrows(CoreException.class,
+                    () -> orderFacade.placeOrder(globalUserIdStr, globalOrderItems, 0));
+
+            assertEquals("사용자가 존재하지 않습니다.", ex.getMessage());
+        }
+
+        @Test
+        void 재고없으면_예외발생() {
+            when(userRepository.findByUserId(globalUserId)).thenReturn(Optional.of(mock(User.class)));
+            when(stockRepository.findByRefProductId(globalProductId)).thenReturn(Optional.empty());
+
+            CoreException ex = assertThrows(CoreException.class,
+                    () -> orderFacade.placeOrder(globalUserIdStr, globalOrderItems, 0));
+
+            assertEquals("상품 재고가 존재하지 않습니다: " + globalProductId, ex.getMessage());
+        }
+
+        @Test
+        void 재고부족하면_예외발생() {
+            when(userRepository.findByUserId(globalUserId)).thenReturn(Optional.of(mock(User.class)));
+            when(stockRepository.findByRefProductId(globalProductId))
+                    .thenReturn(Optional.of(new Stock(globalProductId, 1))); // 요청 수량 2보다 적음
+
+            CoreException ex = assertThrows(CoreException.class,
+                    () -> orderFacade.placeOrder(globalUserIdStr, globalOrderItems, 0));
+
+            assertEquals("재고가 부족합니다: " + globalProductId, ex.getMessage());
+        }
+
+        @Test
+        void 포인트없으면_예외발생() {
+            mock정상사용자_재고충분();
+
+            when(pointRepository.findByRefUserId(globalUserId)).thenReturn(Optional.empty());
+
+            CoreException ex = assertThrows(CoreException.class,
+                    () -> orderFacade.placeOrder(globalUserIdStr, globalOrderItems, 0));
+
+            assertEquals("포인트 정보가 존재하지 않습니다.", ex.getMessage());
+        }
+
+        @Test
+        void 포인트부족하면_예외발생() {
+            mock정상사용자_재고충분();
+            when(pointRepository.findByRefUserId(globalUserId))
+                    .thenReturn(Optional.of(new Point(globalUserId, new Balance(50L)))); // 요청: 100
+
+            CoreException ex = assertThrows(CoreException.class,
+                    () -> orderFacade.placeOrder(globalUserIdStr, globalOrderItems, 100));
+
+            assertEquals("포인트가 부족합니다.", ex.getMessage());
+        }
+
+        @Test
+        void 상품없으면_예외발생() {
+            mock정상사용자_재고충분();
+            when(pointRepository.findByRefUserId(globalUserId))
+                    .thenReturn(Optional.of(new Point(globalUserId, new Balance(100L))));
+
+            when(productRepository.findById(globalProductId)).thenReturn(Optional.empty());
+
+            CoreException ex = assertThrows(CoreException.class,
+                    () -> orderFacade.placeOrder(globalUserIdStr, globalOrderItems, 0));
+
+            assertEquals("상품이 존재하지 않습니다: " + globalProductId, ex.getMessage());
+        }
+
+        private void mock정상사용자_재고충분() {
+            when(userRepository.findByUserId(globalUserId)).thenReturn(Optional.of(mock(User.class)));
+            when(stockRepository.findByRefProductId(globalProductId)).thenReturn(Optional.of(new Stock(globalProductId, 10)));
+        }
+    }
+
 
     @DisplayName("상품을 여러개 한꺼번에 주문할 수 있다.")
     @Test
