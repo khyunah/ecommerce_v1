@@ -1,7 +1,6 @@
 package com.loopers.domain.point.vo;
 
 import com.loopers.domain.point.Point;
-import com.loopers.domain.user.vo.Email;
 import com.loopers.support.error.CoreException;
 import com.loopers.support.error.ErrorType;
 import jakarta.persistence.Column;
@@ -37,5 +36,13 @@ public class Balance {
     public static Balance plus(Point point, Long amount){
         validate(amount);
         return new Balance(amount + point.getBalance().getValue());
+    }
+
+    public static Balance minus(Point point, long amount) {
+        long current = point.getBalance().getValue();
+        if (current < amount) {
+            throw new IllegalArgumentException("차감할 수 있는 포인트가 부족합니다.");
+        }
+        return new Balance(current - amount);
     }
 }

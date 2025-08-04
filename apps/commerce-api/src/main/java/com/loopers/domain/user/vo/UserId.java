@@ -7,6 +7,7 @@ import jakarta.persistence.Embeddable;
 import lombok.Getter;
 import lombok.ToString;
 
+import java.util.Objects;
 import java.util.regex.Pattern;
 
 @Getter
@@ -35,5 +36,18 @@ public class UserId {
         } else if (!ID_PATTERN.matcher(value).matches()){
             throw new CoreException(ErrorType.BAD_REQUEST, "ID 가 영문 및 숫자 10자 이내 형식에 맞지 않습니다.");
         }
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        UserId userId = (UserId) o;
+        return Objects.equals(value, userId.value);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(value);
     }
 }

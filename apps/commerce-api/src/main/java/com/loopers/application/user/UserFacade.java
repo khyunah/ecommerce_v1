@@ -21,4 +21,6 @@ public class UserFacade {
         User user = userService.getByLoginId(loginId);
         return UserInfo.from(user);
     }
+
+
 }
