@@ -44,4 +44,15 @@ public class Stock extends BaseEntity {
             throw new CoreException(ErrorType.BAD_REQUEST, "재고 수량은 음수일 수 없습니다.");
         }
     }
+
+    public static int calculateQuantity(int StockQuantity, int orderQuantity) {
+        if(StockQuantity < orderQuantity){
+            throw new IllegalArgumentException("재고가 부족합니다.");
+        }
+        return StockQuantity - orderQuantity;
+    }
+
+    public void updateQuantity(int StockQuantity, int orderQuantity) {
+        this.quantity = calculateQuantity(StockQuantity, orderQuantity);
+    }
 }

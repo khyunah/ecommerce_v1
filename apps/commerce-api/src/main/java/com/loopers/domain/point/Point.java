@@ -11,24 +11,24 @@ import lombok.Getter;
 @Table(name = "point")
 public class Point extends BaseEntity {
 
-    @Embedded
-    private UserId refUserId;
+    @Column(nullable = false)
+    private Long refUserId;
     @Embedded
     private Balance balance;
 
     public Point(){}
-    public Point(UserId refUserId) {
+    public Point(Long refUserId) {
         this.refUserId = refUserId;
     }
-    public Point(UserId refUserId, Balance balance) {
+    public Point(Long refUserId, Balance balance) {
         this.refUserId = refUserId;
         this.balance = balance;
     }
 
-    public static Point from(String refUserId, Long balance) {
+    public static Point from(Long refUserId, Long balance) {
         return new Point(
-            UserId.from(refUserId),
-            Balance.from(balance)
+                refUserId,
+                Balance.from(balance)
         );
     }
 
@@ -38,6 +38,11 @@ public class Point extends BaseEntity {
                 point.getRefUserId(),
                 plusedBalance
         );
+    }
+
+    public static Point minus(Point point, Long amount){
+        point.balance = Balance.minus(point, amount);
+        return point;
     }
 
 }

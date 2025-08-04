@@ -23,7 +23,7 @@ public class User extends BaseEntity {
     @Embedded
     private BirthDate birthDate;
 
-    @Embedded
+    @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     private Gender gender;
 

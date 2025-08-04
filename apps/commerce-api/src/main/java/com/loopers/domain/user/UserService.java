@@ -28,4 +28,9 @@ public class UserService {
                 .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "존재하지 않는 아이디입니다."));
     }
 
+    public User get(Long id){
+        return userRepository.findById(id)
+                .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "존재하지 않는 아이디입니다."));
+    }
+
 }

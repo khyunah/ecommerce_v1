@@ -43,15 +43,15 @@ public class PointV1ApiE2ETest {
         @Test
         void returnsUserInfo_whenGetMyInfoSuccess() throws Exception {
             // given
-            String refUserId = "test123";
+            Long refUserId = 100L;
             Long balance = 10000L;
             Point savedPoint = pointRepository.save(Point.from(refUserId,balance));
 
             // when & then
-            mockMvc.perform(get("/api/v1/points/"+ savedPoint.getRefUserId().getValue())
+            mockMvc.perform(get("/api/v1/points/"+ savedPoint.getRefUserId())
                             .contentType(MediaType.APPLICATION_JSON))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.refUserId").value(savedPoint.getRefUserId().getValue()))
+                    .andExpect(jsonPath("$.refUserId").value(savedPoint.getRefUserId()))
                     .andExpect(jsonPath("$.balance").value(savedPoint.getBalance().getValue()))
                     .andDo(print());
         }
@@ -60,7 +60,7 @@ public class PointV1ApiE2ETest {
         @Test
         void returns400BadRequest_whenIsNullGender() throws Exception {
             // given
-            String refUserId = "test123";
+            Long refUserId = 100L;
             Long amount = 1000L;
             PointV1Dto.PointChargeRequest request = new PointV1Dto.PointChargeRequest(refUserId,amount);
 
@@ -80,7 +80,7 @@ public class PointV1ApiE2ETest {
         @Test
         void returnsTotalPoint_whenUserExistsAndCharges1000Won() throws Exception {
             // given
-            String refUserId = "test123";
+            Long refUserId = 100L;
             Long balance = 10000L;
             Long amount = 10000L;
             Point point = Point.from(refUserId,balance);
@@ -104,7 +104,7 @@ public class PointV1ApiE2ETest {
         @Test
         void returns400BadRequest_whenIsNullGender() throws Exception {
             // given
-            String refUserId = "test123";
+            Long refUserId = 100L;
             Long amount = 1000L;
             PointV1Dto.PointChargeRequest request = new PointV1Dto.PointChargeRequest(refUserId, amount);
 

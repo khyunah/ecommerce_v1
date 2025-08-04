@@ -13,7 +13,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter
-@Table(name = "order")
+@Table(name = "`order`")
 public class Order extends BaseEntity {
     @Column(nullable = false)
     private Long refUserId;
@@ -22,6 +22,7 @@ public class Order extends BaseEntity {
     private OrderStatus orderStatus;
 
     @JoinColumn(name = "order_id")
+    @OneToMany(cascade = CascadeType.ALL)
     private List<OrderItem> orderItems = new ArrayList<>();
 
     public static Order create(Long refUserId, List<OrderItem> orderItems) {
