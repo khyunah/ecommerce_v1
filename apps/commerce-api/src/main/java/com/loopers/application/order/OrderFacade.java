@@ -11,6 +11,8 @@ import com.loopers.domain.stock.Stock;
 import com.loopers.domain.stock.StockService;
 import com.loopers.domain.user.User;
 import com.loopers.domain.user.UserService;
+import com.loopers.support.error.CoreException;
+import com.loopers.support.error.ErrorType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -55,7 +57,7 @@ public class OrderFacade {
             for (OrderItemResult item : items) {
                 Product product = productService.getDetail(item.productId());
                 System.out.println("product 확인: " + product.getName());
-                totalPrice += product.getSellingPrice().getValue().longValue();
+                totalPrice += product.getSellingPrice().getValue().longValue() * item.quantity();
                 System.out.println("product 할인가격: " + product.getSellingPrice().getValue().longValue());
                 System.out.println("product 원가격: " + product.getOriginalPrice().getValue().longValue());
                 orderItems.add(OrderItem.create(
@@ -85,10 +87,11 @@ public class OrderFacade {
             System.out.println("order 확인: " + order.getOrderStatus());
 
         } catch (Exception e){
-
+            throw new CoreException(ErrorType.BAD_REQUEST, "주문 중 에러가 발생했습니다. 다시 시도해주세요.");
         }
-
-        externalOrderSender.sendOrder(order);
+        if(order != null){
+            externalOrderSender.sendOrder(order);
+        }
         return order;
     }
 
