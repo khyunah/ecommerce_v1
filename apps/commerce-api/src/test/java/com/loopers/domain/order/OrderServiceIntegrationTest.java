@@ -43,4 +43,21 @@ class OrderServiceIntegrationTest {
         assertThat(results.get(0).getOrderSeq()).isEqualTo(order.getOrderSeq());
         assertThat(results.get(0).getOrderStatus()).isEqualTo(order.getOrderStatus());
     }
+
+    @DisplayName("유저의 주문 상세정보를 반환한다.")
+    @Test
+    void returnsOrderDetail_WhenUserOwnsOrder() {
+        // given
+        List<OrderItem> items = List.of(new OrderItem(1L,1,"티셔츠", Money.from(BigDecimal.valueOf(1000)),Money.from(BigDecimal.valueOf(1200))));
+        Order order = orderRepository.save(Order.create(1L,"seq1123", items));
+
+        // when
+        Order result = orderSpyService.getOrderDetail(order.getId(), order.getRefUserId());
+
+        // then
+        assertThat(result.getOrderItems().size()).isEqualTo(1);
+        assertThat(result.getOrderSeq()).isEqualTo(order.getOrderSeq());
+        assertThat(result.getOrderStatus()).isEqualTo(order.getOrderStatus());
+        assertThat(result.getOrderItems().get(0).getProductName()).isEqualTo(order.getOrderItems().get(0).getProductName());
+    }
 }

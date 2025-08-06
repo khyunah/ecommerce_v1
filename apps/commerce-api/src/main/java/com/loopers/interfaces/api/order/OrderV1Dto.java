@@ -1,11 +1,13 @@
 package com.loopers.interfaces.api.order;
 
-import com.loopers.application.order.out.OrderCreateResult;
 import com.loopers.application.order.in.OrderCreateCommand;
 import com.loopers.application.order.in.OrderItemCriteria;
+import com.loopers.application.order.out.OrderCreateResult;
+import com.loopers.application.order.out.OrderDetailResult;
 import com.loopers.application.order.out.OrderResult;
 import com.loopers.domain.order.Order;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -71,6 +73,38 @@ public class OrderV1Dto {
                 ));
             }
             return result;
+        }
+    }
+
+    public record OrderDetailResponse(
+            Long orderId,
+            String orderStatus,
+            List<OrderItemDetailRep> items
+    ) {
+        public record OrderItemDetailRep(
+                String productName,
+                int quantity,
+                BigDecimal originalPrice,
+                BigDecimal discountedPrice
+        ) {
+            public static List<OrderItemDetailRep> from(List<OrderDetailResult.OrderItemDetail> details) {
+                return  details.stream()
+                        .map(item -> new OrderItemDetailRep(
+                                item.productName(),
+                                item.quantity(),
+                                item.originalPrice(),
+                                item.discountedPrice()
+                        ))
+                        .toList();
+            }
+        }
+
+        public static OrderDetailResponse from(OrderDetailResult result) {
+            return new OrderDetailResponse(
+                    result.orderId(),
+                    result.orderStatus(),
+                    OrderItemDetailRep.from(result.items())
+            );
         }
     }
 }

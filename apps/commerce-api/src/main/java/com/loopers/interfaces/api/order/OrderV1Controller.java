@@ -3,6 +3,7 @@ package com.loopers.interfaces.api.order;
 import com.loopers.application.order.OrderFacade;
 import com.loopers.application.order.out.OrderCreateResult;
 import com.loopers.application.order.in.OrderCreateCommand;
+import com.loopers.application.order.out.OrderDetailResult;
 import com.loopers.application.order.out.OrderResult;
 import com.loopers.support.auth.AuthenticatedUserIdProvider;
 import jakarta.servlet.http.HttpServletRequest;
@@ -37,6 +38,16 @@ public class OrderV1Controller {
         Long userId = AuthenticatedUserIdProvider.getUserId(headers);
         List<OrderResult> result = orderFacade.getOrders(userId);
         List<OrderV1Dto.OrderResponse> response = OrderV1Dto.OrderResponse.from(result);
+        return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
+
+    @GetMapping("/{orderId}")
+    public ResponseEntity<OrderV1Dto.OrderDetailResponse> get(
+            HttpServletRequest headers,
+            @PathVariable Long orderId){
+        Long userId = AuthenticatedUserIdProvider.getUserId(headers);
+        OrderDetailResult result = orderFacade.getOrderDetail(orderId, userId);
+        OrderV1Dto.OrderDetailResponse response = OrderV1Dto.OrderDetailResponse.from(result);
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 }

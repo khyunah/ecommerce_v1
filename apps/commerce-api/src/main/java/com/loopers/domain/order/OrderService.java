@@ -20,7 +20,7 @@ public class OrderService {
         return orderRepository.findAllByUserId(refUserId);
     }
 
-    public Order findByIdAndUserId(Long orderId, Long userId) {
+    public Order getOrderDetail(Long orderId, Long userId) {
         return orderRepository.findByIdAndUserId(orderId,userId)
                 .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "주문 정보가 존재하지 않습니다."));
     }

@@ -7,10 +7,14 @@ import com.loopers.application.order.in.OrderItemCriteria;
 import com.loopers.domain.coupon.Coupon;
 import com.loopers.domain.coupon.CouponRepository;
 import com.loopers.domain.coupon.CouponType;
+import com.loopers.domain.order.Order;
+import com.loopers.domain.order.OrderItem;
+import com.loopers.domain.order.OrderRepository;
 import com.loopers.domain.point.Point;
 import com.loopers.domain.point.PointRepository;
 import com.loopers.domain.product.Product;
 import com.loopers.domain.product.ProductRepository;
+import com.loopers.domain.product.vo.Money;
 import com.loopers.domain.stock.Stock;
 import com.loopers.domain.stock.StockRepository;
 import com.loopers.domain.user.User;
@@ -53,6 +57,8 @@ class OrderV1E2ETest {
     private UserRepository userRepository;
     @Autowired
     private ProductRepository productRepository;
+    @Autowired
+    private OrderRepository orderRepository;
     @Autowired
     private OrderFacade orderFacade;
 
@@ -170,6 +176,49 @@ class OrderV1E2ETest {
                     .andExpect(jsonPath("$[0].status").exists())
                     .andExpect(jsonPath("$[0].orderedAt").exists())
                     .andExpect(jsonPath("$[0].price").exists())
+                    .andDo(print());
+        }
+
+        @DisplayName("존재하지 않는 유저로 요청할 경우, 400 Bad Request 응답을 반환한다.")
+        @Test
+        void returns400BadRequest_whenIsNullUserId() throws Exception {
+            // given
+            List<OrderV1Dto.OrderItemRequest> items = List.of(new OrderV1Dto.OrderItemRequest(productId1, 1));
+            OrderV1Dto.OrderCreateRequest request = new OrderV1Dto.OrderCreateRequest(
+                    items,
+                    "ORDER-SEQ-123",
+                    -1L
+            );
+
+            // when & then
+            mockMvc.perform(get("/api/v1/orders")
+                            .header("X-USER-ID", "")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isBadRequest());
+        }
+    }
+
+    @DisplayName("/api/v1/orders/상세조회")
+    @Nested
+    class getDetail {
+
+        @DisplayName("존재하는 유저가 주문상세 조회할 경우, 상세정보가 반환된다.")
+        @Test
+        void returnsOrderDetail_whenExistingUserRequestsIt() throws Exception {
+            // given
+            List<OrderItem> items = List.of(new OrderItem(1L,1,"티셔츠", Money.from(BigDecimal.valueOf(1000)),Money.from(BigDecimal.valueOf(1200))));
+            Order order = orderRepository.save(Order.create(1L,"seq1123", items));
+
+
+            // when & then
+            mockMvc.perform(get("/api/v1/orders/"+order.getId())
+                            .header("X-USER-ID", userId1.toString())
+                            .contentType(MediaType.APPLICATION_JSON))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.items.length()").value(1))
+                    .andExpect(jsonPath("$.orderStatus").exists())
+                    .andExpect(jsonPath("$.orderId").exists())
                     .andDo(print());
         }
 

@@ -104,18 +104,8 @@ public class OrderFacade {
         return OrderResult.from(orders);
     }
 
-    public OrderDetailResult getOrderDetail(Long userId, Long orderId) {
-        Order order = orderService.findByIdAndUserId(orderId, userId);
-
-        List<OrderDetailResult.OrderItemDetail> items = order.getOrderItems().stream()
-                .map(item -> new OrderDetailResult.OrderItemDetail(
-                        item.getProductName(),
-                        item.getQuantity(),
-                        item.getOriginalPrice().getValue(),
-                        item.getSellingPrice().getValue()
-                ))
-                .toList();
-
-        return new OrderDetailResult(order.getId(), order.getOrderStatus().name(), items);
+    public OrderDetailResult getOrderDetail(Long orderId, Long userId) {
+        Order order = orderService.getOrderDetail(orderId, userId);
+        return OrderDetailResult.from(order);
     }
 }
