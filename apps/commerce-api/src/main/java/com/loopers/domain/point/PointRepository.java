@@ -4,6 +4,10 @@ import java.util.Optional;
 
 public interface PointRepository {
     Optional<Point> findByRefUserId(Long refUserId);
+
+    Optional<Point> findByRefUserIdWithLock(Long refUserId);
+
     Point save(Point point);
     void deduct(Long userId, long amount);
+    Optional<Point> findById(Long pointId);
 }

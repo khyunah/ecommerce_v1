@@ -11,15 +11,25 @@ import java.util.Optional;
 @Component
 public class StockRepositoryImpl implements StockRepository {
 
-    private final StockJpaRepository jpaStockRepository;
+    private final StockJpaRepository stockJpaRepository;
+
+    @Override
+    public Optional<Stock> findByRefProductIdWithLock(Long refProductId) {
+        return stockJpaRepository.findByRefProductIdWithLock(refProductId);
+    }
 
     @Override
     public Optional<Stock> findByRefProductId(Long refProductId) {
-        return jpaStockRepository.findByRefProductId(refProductId);
+        return stockJpaRepository.findByRefProductId(refProductId);
     }
 
     @Override
     public Stock save(Stock stock) {
-        return jpaStockRepository.save(stock);
+        return stockJpaRepository.save(stock);
+    }
+
+    @Override
+    public Optional<Stock> findById(Long stockId) {
+        return stockJpaRepository.findById(stockId);
     }
 }

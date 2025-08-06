@@ -47,8 +47,8 @@ public class Product extends BaseEntity {
         return new Product(
                 name,
                 description,
-                Money.from(sellingPrice),
                 Money.from(originalPrice),
+                Money.from(sellingPrice),
                 SaleStatus.from(saleStatus),
                 refBrandId
         );

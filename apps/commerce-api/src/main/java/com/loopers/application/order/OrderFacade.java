@@ -2,24 +2,18 @@ package com.loopers.application.order;
 
 import com.loopers.domain.order.*;
 import com.loopers.domain.point.Point;
-import com.loopers.domain.point.PointRepository;
 import com.loopers.domain.point.PointService;
-import com.loopers.domain.point.vo.Balance;
 import com.loopers.domain.product.Product;
-import com.loopers.domain.product.ProductRepository;
 import com.loopers.domain.product.ProductService;
 import com.loopers.domain.stock.Stock;
-import com.loopers.domain.stock.StockRepository;
 import com.loopers.domain.stock.StockService;
 import com.loopers.domain.user.User;
-import com.loopers.domain.user.UserRepository;
 import com.loopers.domain.user.UserService;
-import com.loopers.support.error.CoreException;
-import com.loopers.support.error.ErrorType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @RequiredArgsConstructor
@@ -34,38 +28,50 @@ public class OrderFacade {
     private final OrderService orderService;
 
     @Transactional
-    public Order placeOrder(Long userId, List<OrderItemResult> items, Long userPointsToUse,String orderSeq) {
+    public Order placeOrder(Long userId, List<OrderItemResult> items, String orderSeq) {
+
+        // 주문 중복 체크
+
 
         // 사용자 정보
         User user = userService.get(userId);
 
         // 재고처리
         for (OrderItemResult item : items) {
-            Stock stock = stockService.getByRefProductId(item.productId());
-            stock.updateQuantity(stock.getQuantity(), item.quantity());
+            Stock stock = stockService.getByRefProductIdWithLock(item.productId());
+            stockService.updateQuantity(stock, item.quantity());
+            System.out.println("stock 확인: " + stock.getQuantity());
+        }
+
+        List<OrderItem> orderItems = new ArrayList<>();
+
+        // 주문 상품 존재 확인 및 주문아이템 추가
+        Long totalPrice = 0L;
+        for (OrderItemResult item : items) {
+            Product product = productService.getDetail(item.productId());
+            System.out.println("product 확인: " + product.getName());
+            totalPrice += product.getSellingPrice().getValue().longValue();
+            System.out.println("product 할인가격: " + product.getSellingPrice().getValue().longValue());
+            System.out.println("product 원가격: " + product.getOriginalPrice().getValue().longValue());
+            orderItems.add(OrderItem.create(
+                    product.getId(),
+                    item.quantity(),
+                    product.getName(),
+                    product.getSellingPrice(),
+                    product.getOriginalPrice()
+            ));
         }
 
         // 포인트 차감
-        Point point = pointService.getByRefUserId(userId);
-        Point.minus(point, userPointsToUse);
+        Point point = pointService.getByRefUserIdWithLock(userId);
+        System.out.println("point 확인: " + point.getRefUserId());
+        Point.minus(point, totalPrice);
         pointService.save(point);
 
-        // 주문 상품 존재 확인
-        List<OrderItem> orderItems = items.stream()
-                .map(req -> {
-                    Product product = productService.getDetail(req.productId());
-                    return OrderItem.create(
-                            product.getId(),
-                            req.quantity(),
-                            product.getName(),
-                            product.getSellingPrice(),
-                            product.getOriginalPrice());
-                }).toList();
-
         // 주문 생성
-        Order order = Order.create(user.getId(), orderItems);
+        Order order = Order.create(user.getId(), orderSeq, orderItems);
         order = orderService.save(order);
-
+        System.out.println("order 확인: " + order.getOrderStatus());
         externalOrderSender.sendOrder(order);
         return order;
     }

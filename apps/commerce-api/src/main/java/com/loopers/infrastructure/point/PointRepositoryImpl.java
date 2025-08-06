@@ -22,6 +22,11 @@ public class PointRepositoryImpl implements PointRepository {
     }
 
     @Override
+    public Optional<Point> findByRefUserIdWithLock(Long refUserId) {
+        return pointJpaRepository.findByRefUserIdWithLock(refUserId);
+    }
+
+    @Override
     public Point save(Point point) {
         return pointJpaRepository.save(point);
     }
@@ -38,5 +43,10 @@ public class PointRepositoryImpl implements PointRepository {
         Balance newBalance = Balance.minus(point, amount);
         point = new Point(point.getRefUserId(), newBalance);
         pointJpaRepository.save(point);
+    }
+
+    @Override
+    public Optional<Point> findById(Long pointId) {
+        return pointJpaRepository.findById(pointId);
     }
 }

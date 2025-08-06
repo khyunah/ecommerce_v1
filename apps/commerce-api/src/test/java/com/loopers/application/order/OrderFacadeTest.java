@@ -6,31 +6,20 @@ import com.loopers.domain.point.PointRepository;
 import com.loopers.domain.point.vo.Balance;
 import com.loopers.domain.product.Product;
 import com.loopers.domain.product.ProductRepository;
-import com.loopers.domain.product.vo.Money;
 import com.loopers.domain.stock.Stock;
 import com.loopers.domain.stock.StockRepository;
 import com.loopers.domain.user.User;
 import com.loopers.domain.user.UserRepository;
 import com.loopers.domain.user.UserService;
-import com.loopers.domain.user.vo.UserId;
-import com.loopers.support.error.CoreException;
 import jakarta.transaction.Transactional;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.util.List;
-import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -77,14 +66,14 @@ class OrderFacadeTest {
         Long usePoint = 3000L;
 
         // when
-        Order order = orderFacade.placeOrder(user.getId(), items, usePoint, "ORDER-123");
+        Order order = orderFacade.placeOrder(user.getId(), items, "ORDER-123");
 
         // then
         assertThat(order.getId()).isNotNull();
         assertThat(order.getOrderItems()).hasSize(1);
         assertThat(pointRepository.findByRefUserId(user.getId()).get().getBalance().getValue()).isEqualTo(Balance.from(47000L).getValue()); // 포인트 차감 확인
 
-        assertThat(stockRepository.findByRefProductId(product.getId()).get().getQuantity())
+        assertThat(stockRepository.findByRefProductIdWithLock(product.getId()).get().getQuantity())
                 .isEqualTo(8); // 재고 차감 확인
 
         verify(externalOrderSender).sendOrder(any(Order.class)); // 외부 시스템 호출 확인

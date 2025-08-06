@@ -16,6 +16,11 @@ public class PointService {
                 .orElseThrow(()-> new CoreException(ErrorType.NOT_FOUND, "존재하지 않는 유저 ID 입니다."));
     }
 
+    public Point getByRefUserIdWithLock(Long refUserId){
+        return pointRepository.findByRefUserIdWithLock(refUserId)
+                .orElseThrow(()-> new CoreException(ErrorType.NOT_FOUND, "존재하지 않는 유저 ID 입니다."));
+    }
+
     public Point charge(Point point, Long amount){
         Point findedPoint = pointRepository.findByRefUserId(point.getRefUserId())
                 .orElseThrow(()-> new CoreException(ErrorType.NOT_FOUND, "존재하지 않는 유저 ID 로 충전을 시도했습니다."));
