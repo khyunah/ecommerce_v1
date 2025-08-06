@@ -76,10 +76,24 @@ public class Coupon extends BaseEntity {
         }
     }
 
-    // 정률 할인 쿠폰
+    // 정률 할인 쿠폰 계산
     public Long applyRateDiscount(Long originalPrice, int discountRate) {
+        if(!couponType.name().equals(CouponType.RATE.name())){
+            throw new IllegalArgumentException("정률 할인 쿠폰이 아닙니다.");
+        }
         validateDiscountRate(discountRate);
         long discountedPrice = originalPrice * (100 - discountRate) / 100;
         return Math.max(0, discountedPrice);
     }
+
+    // 정액 할인 쿠폰 계산
+    public Long applyPriceDiscount(Long originalPrice, Long discountPrice) {
+        if(!couponType.name().equals(CouponType.PRICE.name())){
+            throw new IllegalArgumentException("정액 할인 쿠폰이 아닙니다.");
+        }
+        validateDiscountPrice(discountPrice);
+        long discountedPrice = originalPrice - discountPrice;
+        return Math.max(0, discountedPrice);
+    }
+
 }

@@ -1,7 +1,5 @@
 package com.loopers.domain.coupon;
 
-import com.loopers.domain.user.vo.Gender;
-
 import java.util.Arrays;
 
 public enum CouponType {
@@ -16,7 +14,7 @@ public enum CouponType {
         if (value == null || value.isBlank()) {
             throw new IllegalArgumentException("쿠폰타입은 비어있을 수 없습니다.");
         } else {
-            boolean exists = Arrays.stream(Gender.values())
+            boolean exists = Arrays.stream(CouponType.values())
                     .anyMatch(g -> g.name().equalsIgnoreCase(value));
 
             if (!exists) {
