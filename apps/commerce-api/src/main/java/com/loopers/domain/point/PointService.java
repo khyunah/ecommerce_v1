@@ -28,6 +28,13 @@ public class PointService {
         return pointRepository.save(charged);
     }
 
+    public Point minus(Point point, Long amount){
+        Point findedPoint = pointRepository.findByRefUserId(point.getRefUserId())
+                .orElseThrow(()-> new CoreException(ErrorType.NOT_FOUND, "존재하지 않는 유저 ID 로 포인트 사용을 시도했습니다."));
+        Point charged = Point.minus(findedPoint, amount);
+        return pointRepository.save(charged);
+    }
+
     public Point save(Point point) {
         return pointRepository.save(point);
     }

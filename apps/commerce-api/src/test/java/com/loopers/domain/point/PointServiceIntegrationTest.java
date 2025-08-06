@@ -73,4 +73,24 @@ public class PointServiceIntegrationTest {
 
     }
 
+    @DisplayName("포인트 잔액이 부족할 경우 IllegalArgumentException 에러를 반환한다.")
+    @Test
+    void should_throw_illegal_argument_exception_when_point_balance_is_insufficient() {
+        // given
+        Long userId = 100L;
+        Point point = Point.from(userId, 10000L);
+        Point savedPoint = pointRepository.save(point);
+        Long amount = 20000L;
+
+        // when
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
+            pointSpyService.minus(point, amount);
+        });
+
+        // then
+        assertThat(exception.getClass()).isEqualTo(IllegalArgumentException.class);
+        assertThat(exception.getMessage()).isEqualTo("차감할 수 있는 포인트가 부족합니다.");
+
+    }
+
 }

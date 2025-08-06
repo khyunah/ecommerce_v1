@@ -41,6 +41,7 @@ public class Point extends BaseEntity {
     }
 
     public static Point minus(Point point, Long amount){
+
         point.balance = Balance.minus(point, amount);
         return point;
     }
