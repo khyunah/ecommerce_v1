@@ -1,5 +1,7 @@
 package com.loopers.application.order;
 
+import com.loopers.application.order.in.OrderCreateCommand;
+import com.loopers.application.order.in.OrderItemCriteria;
 import com.loopers.domain.coupon.Coupon;
 import com.loopers.domain.coupon.CouponService;
 import com.loopers.domain.order.*;
@@ -33,18 +35,16 @@ public class OrderFacade {
     private final CouponService couponService;
 
     @Transactional
-    public Order placeOrder(Long userId, List<OrderItemResult> items, String orderSeq, Long couponId) {
-
-        // 주문 중복 체크
-
+    public OrderSummaryResult placeOrder(OrderCreateCommand command) {
 
         // 사용자 정보
-        User user = userService.get(userId);
+        User user = userService.get(command.userId());
         Order order = null;
+        long totalPrice = 0L;
 
         try {
             // 재고처리
-            for (OrderItemResult item : items) {
+            for (OrderItemCriteria item : command.items()) {
                 Stock stock = stockService.getByRefProductIdWithLock(item.productId());
                 stockService.updateQuantity(stock, item.quantity());
                 System.out.println("stock 확인: " + stock.getQuantity());
@@ -53,8 +53,7 @@ public class OrderFacade {
             List<OrderItem> orderItems = new ArrayList<>();
 
             // 주문 상품 존재 확인 및 주문아이템 추가
-            long totalPrice = 0L;
-            for (OrderItemResult item : items) {
+            for (OrderItemCriteria item : command.items()) {
                 Product product = productService.getDetail(item.productId());
                 System.out.println("product 확인: " + product.getName());
                 totalPrice += product.getSellingPrice().getValue().longValue() * item.quantity();
@@ -70,29 +69,31 @@ public class OrderFacade {
             }
 
             // 쿠폰 적용
-            if(couponId > -1){
-                Coupon coupon = couponService.get(couponId, userId);
+            if(command.couponId() > -1){
+                Coupon coupon = couponService.get(command.couponId(), command.userId());
                 coupon.useCoupon();
             }
 
             // 포인트 차감
-            Point point = pointService.getByRefUserIdWithLock(userId);
+            Point point = pointService.getByRefUserIdWithLock(command.userId());
             System.out.println("point 확인: " + point.getRefUserId());
             Point.minus(point, totalPrice);
             pointService.save(point);
 
             // 주문 생성
-            order = Order.create(user.getId(), orderSeq, orderItems);
+            order = Order.create(user.getId(), command.orderSeq(), orderItems);
             order = orderService.save(order);
             System.out.println("order 확인: " + order.getOrderStatus());
 
         } catch (Exception e){
             throw new CoreException(ErrorType.BAD_REQUEST, "주문 중 에러가 발생했습니다. 다시 시도해주세요.");
         }
+        OrderSummaryResult result = null;
         if(order != null){
+            result = OrderSummaryResult.from(order, totalPrice);
             externalOrderSender.sendOrder(order);
         }
-        return order;
+        return result;
     }
 
     public List<OrderSummaryResult> getOrders(Long refUserId) {
@@ -104,8 +105,7 @@ public class OrderFacade {
                                 order.getId(),
                                 order.getOrderStatus().name(),
                                 order.getCreatedAt().toLocalDateTime(),
-                                item.getSellingPrice().getValue(),
-                                item.getProductId()
+                                item.getSellingPrice().getValue().longValue()
                         )
                 ))
                 .toList();

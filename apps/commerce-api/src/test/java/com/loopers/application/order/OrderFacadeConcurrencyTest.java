@@ -1,5 +1,7 @@
 package com.loopers.application.order;
 
+import com.loopers.application.order.in.OrderCreateCommand;
+import com.loopers.application.order.in.OrderItemCriteria;
 import com.loopers.domain.coupon.Coupon;
 import com.loopers.domain.coupon.CouponRepository;
 import com.loopers.domain.coupon.CouponType;
@@ -127,8 +129,14 @@ public class OrderFacadeConcurrencyTest {
         for (int i = 0; i < threadCount; i++) {
             executorService.submit(() -> {
                 try {
-                    List<OrderItemResult> items = List.of(new OrderItemResult(productId1, 1));
-                    orderFacade.placeOrder(userId1, items, "ORDER-SEQ-" + Thread.currentThread().getId(), -1L);
+                    List<OrderItemCriteria> items = List.of(new OrderItemCriteria(productId1, 1));
+                    OrderCreateCommand command = new OrderCreateCommand(
+                            userId1,
+                            items,
+                            "ORDER-SEQ-" + Thread.currentThread().getId(),
+                            -1L
+                    );
+                    orderFacade.placeOrder(command);
                 } catch (Exception e) {
                     // 예외 무시 (충돌이 날 수도 있음)
                     e.printStackTrace();
@@ -164,8 +172,14 @@ public class OrderFacadeConcurrencyTest {
         for (int i = 0; i < threadCount; i++) {
             executorService.submit(() -> {
                 try {
-                    List<OrderItemResult> items = List.of(new OrderItemResult(productId2, 1));
-                    orderFacade.placeOrder(userId1, items, "ORDER-SEQ-" + Thread.currentThread().getId(), -1L);
+                    List<OrderItemCriteria> items = List.of(new OrderItemCriteria(productId2, 1));
+                    OrderCreateCommand command = new OrderCreateCommand(
+                            userId1,
+                            items,
+                            "ORDER-SEQ-" + Thread.currentThread().getId(),
+                            -1L
+                    );
+                    orderFacade.placeOrder(command);
                 } catch (Exception e) {
                     // 예외 무시 (충돌이 날 수도 있음)
                     e.printStackTrace();
@@ -204,17 +218,23 @@ public class OrderFacadeConcurrencyTest {
             executorService.submit(() -> {
                 try {
                     Long userId = 0L;
-                    List<OrderItemResult> items = null;
+                    List<OrderItemCriteria> items = null;
                     if(finalI%2 == 0){
                         System.out.println("짝수: "+finalI%2);
                         userId = userId2;
-                        items = List.of(new OrderItemResult(productId1, 1));
+                        items = List.of(new OrderItemCriteria(productId1, 1));
                     } else {
                         System.out.println("홀수: "+finalI%2);
                         userId = userId1;
-                        items = List.of(new OrderItemResult(productId1, 1));
+                        items = List.of(new OrderItemCriteria(productId1, 1));
                     }
-                    orderFacade.placeOrder(userId, items, "ORDER-SEQ-" + Thread.currentThread().getId(), -1L);
+                    OrderCreateCommand command = new OrderCreateCommand(
+                            userId,
+                            items,
+                            "ORDER-SEQ-" + Thread.currentThread().getId(),
+                            -1L
+                    );
+                    orderFacade.placeOrder(command);
                 } catch (Exception e) {
                     // 예외 무시 (충돌이 날 수도 있음)
                     e.printStackTrace();
@@ -253,12 +273,17 @@ public class OrderFacadeConcurrencyTest {
         ExecutorService executorService = Executors.newFixedThreadPool(threadCount);
         CountDownLatch latch = new CountDownLatch(threadCount);
 
-        // 두명의 유저가 하나의 상품을 여러번 주문
         for (int i = 0; i < threadCount; i++) {
             executorService.submit(() -> {
                 try {
-                    List<OrderItemResult> items = List.of(new OrderItemResult(productId1, 2));
-                    orderFacade.placeOrder(userId1, items, "ORDER-SEQ-" + Thread.currentThread().getId(), -1L);
+                    List<OrderItemCriteria> items = List.of(new OrderItemCriteria(productId1, 2));
+                    OrderCreateCommand command = new OrderCreateCommand(
+                            userId1,
+                            items,
+                            "ORDER-SEQ-" + Thread.currentThread().getId(),
+                            -1L
+                    );
+                    orderFacade.placeOrder(command);
                 } catch (Exception e) {
                     // 예외 무시 (충돌이 날 수도 있음)
                     e.printStackTrace();
@@ -294,8 +319,14 @@ public class OrderFacadeConcurrencyTest {
         for (int i = 0; i < threadCount; i++) {
             executorService.submit(() -> {
                 try {
-                    List<OrderItemResult> items = List.of(new OrderItemResult(productId1, 1));
-                    orderFacade.placeOrder(userId1, items, "ORDER-SEQ-" + Thread.currentThread().getId(), couponId1);
+                    List<OrderItemCriteria> items = List.of(new OrderItemCriteria(productId1, 1));
+                    OrderCreateCommand command = new OrderCreateCommand(
+                            userId1,
+                            items,
+                            "ORDER-SEQ-" + Thread.currentThread().getId(),
+                            couponId1
+                    );
+                    orderFacade.placeOrder(command);
                 } catch (Exception e) {
                     // 예외 무시 (충돌이 날 수도 있음)
                     e.printStackTrace();

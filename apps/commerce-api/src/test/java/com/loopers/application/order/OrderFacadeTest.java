@@ -1,5 +1,7 @@
 package com.loopers.application.order;
 
+import com.loopers.application.order.in.OrderCreateCommand;
+import com.loopers.application.order.in.OrderItemCriteria;
 import com.loopers.domain.order.*;
 import com.loopers.domain.point.Point;
 import com.loopers.domain.point.PointRepository;
@@ -59,19 +61,24 @@ class OrderFacadeTest {
         // given
         User user = userService.register(User.from("userId123", "test@naver.com", "1995-01-01", "F"));
         Product product = productRepository.save(Product.from("티셔츠1","설명1",BigDecimal.valueOf(100L), BigDecimal.valueOf(150L),"ON_SALE", 20L));
-        pointRepository.save(Point.from(user.getId(),50000L));
+        pointRepository.save(Point.from(user.getId(),5000L));
         stockRepository.save(Stock.from(product.getId(), 10));
 
-        List<OrderItemResult> items = List.of(new OrderItemResult(product.getId(), 2));
-        Long usePoint = 3000L;
+        List<OrderItemCriteria> items = List.of(new OrderItemCriteria(product.getId(), 2));
 
         // when
-        Order order = orderFacade.placeOrder(user.getId(), items, "ORDER-123", -1L);
+        OrderCreateCommand command = new OrderCreateCommand(
+                user.getId(),
+                items,
+                "ORDER-123",
+                -1L
+        );
+
+        OrderSummaryResult result = orderFacade.placeOrder(command);
 
         // then
-        assertThat(order.getId()).isNotNull();
-        assertThat(order.getOrderItems()).hasSize(1);
-        assertThat(pointRepository.findByRefUserId(user.getId()).get().getBalance().getValue()).isEqualTo(Balance.from(47000L).getValue()); // 포인트 차감 확인
+        assertThat(result.orderId()).isNotNull();
+        assertThat(pointRepository.findByRefUserId(user.getId()).get().getBalance().getValue()).isEqualTo(Balance.from(4800L).getValue()); // 포인트 차감 확인
 
         assertThat(stockRepository.findByRefProductIdWithLock(product.getId()).get().getQuantity())
                 .isEqualTo(8); // 재고 차감 확인

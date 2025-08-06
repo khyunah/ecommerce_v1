@@ -1,13 +1,21 @@
 package com.loopers.application.order;
 
-import java.math.BigDecimal;
+import com.loopers.domain.order.Order;
+
 import java.time.LocalDateTime;
 
 public record OrderSummaryResult(
         Long orderId,
         String status,
         LocalDateTime orderedAt,
-        BigDecimal price,
-        Long productId
+        Long price
 ) {
+    public static OrderSummaryResult from(Order order, Long totalPrice) {
+        return new OrderSummaryResult(
+              order.getId(),
+              order.getOrderStatus().name(),
+              order.getCreatedAt().toLocalDateTime(),
+              totalPrice
+        );
+    }
 }
