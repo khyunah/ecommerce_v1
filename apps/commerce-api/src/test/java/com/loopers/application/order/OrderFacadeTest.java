@@ -2,6 +2,7 @@ package com.loopers.application.order;
 
 import com.loopers.application.order.in.OrderCreateCommand;
 import com.loopers.application.order.in.OrderItemCriteria;
+import com.loopers.application.order.out.OrderCreateResult;
 import com.loopers.domain.order.*;
 import com.loopers.domain.point.Point;
 import com.loopers.domain.point.PointRepository;
@@ -74,7 +75,7 @@ class OrderFacadeTest {
                 -1L
         );
 
-        OrderSummaryResult result = orderFacade.placeOrder(command);
+        OrderCreateResult result = orderFacade.placeOrder(command);
 
         // then
         assertThat(result.orderId()).isNotNull();

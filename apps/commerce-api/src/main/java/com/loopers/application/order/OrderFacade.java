@@ -2,6 +2,9 @@ package com.loopers.application.order;
 
 import com.loopers.application.order.in.OrderCreateCommand;
 import com.loopers.application.order.in.OrderItemCriteria;
+import com.loopers.application.order.out.OrderCreateResult;
+import com.loopers.application.order.out.OrderDetailResult;
+import com.loopers.application.order.out.OrderResult;
 import com.loopers.domain.coupon.Coupon;
 import com.loopers.domain.coupon.CouponService;
 import com.loopers.domain.order.*;
@@ -35,7 +38,7 @@ public class OrderFacade {
     private final CouponService couponService;
 
     @Transactional
-    public OrderSummaryResult placeOrder(OrderCreateCommand command) {
+    public OrderCreateResult placeOrder(OrderCreateCommand command) {
 
         // 사용자 정보
         User user = userService.get(command.userId());
@@ -88,27 +91,17 @@ public class OrderFacade {
         } catch (Exception e){
             throw new CoreException(ErrorType.BAD_REQUEST, "주문 중 에러가 발생했습니다. 다시 시도해주세요.");
         }
-        OrderSummaryResult result = null;
+        OrderCreateResult result = null;
         if(order != null){
-            result = OrderSummaryResult.from(order, totalPrice);
+            result = OrderCreateResult.from(order, totalPrice);
             externalOrderSender.sendOrder(order);
         }
         return result;
     }
 
-    public List<OrderSummaryResult> getOrders(Long refUserId) {
-        List<Order> orders = orderService.findAllByUserId(refUserId);
-
-        return orders.stream()
-                .flatMap(order -> order.getOrderItems().stream().map(item ->
-                        new OrderSummaryResult(
-                                order.getId(),
-                                order.getOrderStatus().name(),
-                                order.getCreatedAt().toLocalDateTime(),
-                                item.getSellingPrice().getValue().longValue()
-                        )
-                ))
-                .toList();
+    public List<OrderResult> getOrders(Long refUserId) {
+        List<Order> orders = orderService.getOrders(refUserId);
+        return OrderResult.from(orders);
     }
 
     public OrderDetailResult getOrderDetail(Long userId, Long orderId) {

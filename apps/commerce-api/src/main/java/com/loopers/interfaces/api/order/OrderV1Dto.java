@@ -1,8 +1,10 @@
 package com.loopers.interfaces.api.order;
 
-import com.loopers.application.order.OrderSummaryResult;
+import com.loopers.application.order.out.OrderCreateResult;
 import com.loopers.application.order.in.OrderCreateCommand;
 import com.loopers.application.order.in.OrderItemCriteria;
+import com.loopers.application.order.out.OrderResult;
+import com.loopers.domain.order.Order;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -42,13 +44,33 @@ public class OrderV1Dto {
             LocalDateTime orderedAt,
             Long price
     ){
-        public static OrderCreateResponse from(OrderSummaryResult result){
+        public static OrderCreateResponse from(OrderCreateResult result){
             return new OrderCreateResponse(
                     result.orderId(),
                     result.status(),
                     result.orderedAt(),
                     result.price()
             );
+        }
+    }
+
+    public record OrderResponse(
+            Long orderId,
+            String status,
+            LocalDateTime orderedAt,
+            Long price
+    ) {
+        public static List<OrderResponse> from(List<OrderResult> orders){
+            List<OrderResponse> result = new ArrayList<>();
+            for (OrderResult order : orders) {
+                result.add(new OrderResponse(
+                        order.orderId(),
+                        order.status(),
+                        order.orderedAt(),
+                        order.price()
+                ));
+            }
+            return result;
         }
     }
 }

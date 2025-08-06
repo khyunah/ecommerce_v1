@@ -7,7 +7,6 @@ import com.loopers.application.order.in.OrderItemCriteria;
 import com.loopers.domain.coupon.Coupon;
 import com.loopers.domain.coupon.CouponRepository;
 import com.loopers.domain.coupon.CouponType;
-import com.loopers.domain.order.OrderRepository;
 import com.loopers.domain.point.Point;
 import com.loopers.domain.point.PointRepository;
 import com.loopers.domain.product.Product;
@@ -16,7 +15,6 @@ import com.loopers.domain.stock.Stock;
 import com.loopers.domain.stock.StockRepository;
 import com.loopers.domain.user.User;
 import com.loopers.domain.user.UserRepository;
-import com.loopers.interfaces.api.point.PointV1Dto;
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -31,6 +29,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import java.math.BigDecimal;
 import java.util.List;
 
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -54,6 +53,8 @@ class OrderV1E2ETest {
     private UserRepository userRepository;
     @Autowired
     private ProductRepository productRepository;
+    @Autowired
+    private OrderFacade orderFacade;
 
     private Long userId1;
     private Long productId1;
@@ -97,7 +98,7 @@ class OrderV1E2ETest {
         couponId1 = coupon.getId();
     }
 
-    @DisplayName("/api/v1/orders")
+    @DisplayName("/api/v1/orders/주문요청")
     @Nested
     class create {
 
@@ -123,7 +124,7 @@ class OrderV1E2ETest {
 
         @DisplayName("존재하지 않는 유저로 요청할 경우, 400 Bad Request 응답을 반환한다.")
         @Test
-        void returns400BadRequest_whenIsNullGender() throws Exception {
+        void returns400BadRequest_whenIsNullUserId() throws Exception {
             // given
             List<OrderV1Dto.OrderItemRequest> items = List.of(new OrderV1Dto.OrderItemRequest(productId1, 1));
             OrderV1Dto.OrderCreateRequest request = new OrderV1Dto.OrderCreateRequest(
@@ -134,6 +135,57 @@ class OrderV1E2ETest {
 
             // when & then
             mockMvc.perform(post("/api/v1/orders")
+                            .header("X-USER-ID", "")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isBadRequest());
+        }
+    }
+
+    @DisplayName("/api/v1/orders/목록조회")
+    @Nested
+    class get {
+
+        @DisplayName("존재하는 유저가 주문목록을 조회할 경우, 목록이 반환된다.")
+        @Test
+        void returns_order_list_for_existing_user() throws Exception {
+            // given
+            List<OrderItemCriteria> items = List.of(new OrderItemCriteria(productId1, 1));
+            OrderCreateCommand command = new OrderCreateCommand(
+                    userId1,
+                    items,
+                    "ORDER-SEQ-1234",
+                    -1L
+            );
+            orderFacade.placeOrder(command);
+
+            // when & then
+            mockMvc.perform(get("/api/v1/orders")
+                            .header("X-USER-ID", userId1.toString())
+                            .contentType(MediaType.APPLICATION_JSON))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$").isArray())
+                    .andExpect(jsonPath("$.length()").value(1))
+                    .andExpect(jsonPath("$[0].orderId").exists())
+                    .andExpect(jsonPath("$[0].status").exists())
+                    .andExpect(jsonPath("$[0].orderedAt").exists())
+                    .andExpect(jsonPath("$[0].price").exists())
+                    .andDo(print());
+        }
+
+        @DisplayName("존재하지 않는 유저로 요청할 경우, 400 Bad Request 응답을 반환한다.")
+        @Test
+        void returns400BadRequest_whenIsNullUserId() throws Exception {
+            // given
+            List<OrderV1Dto.OrderItemRequest> items = List.of(new OrderV1Dto.OrderItemRequest(productId1, 1));
+            OrderV1Dto.OrderCreateRequest request = new OrderV1Dto.OrderCreateRequest(
+                    items,
+                    "ORDER-SEQ-123",
+                    -1L
+            );
+
+            // when & then
+            mockMvc.perform(get("/api/v1/orders")
                             .header("X-USER-ID", "")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(request)))
