@@ -1,5 +1,8 @@
 package com.loopers.application.order;
 
+import com.loopers.domain.coupon.Coupon;
+import com.loopers.domain.coupon.CouponRepository;
+import com.loopers.domain.coupon.CouponType;
 import com.loopers.domain.order.Order;
 import com.loopers.domain.order.OrderRepository;
 import com.loopers.domain.point.Point;
@@ -38,6 +41,9 @@ public class OrderFacadeConcurrencyTest {
     @Autowired
     private PointRepository pointRepository;
 
+    @Autowired
+    private CouponRepository couponRepository;
+
     private final int threadCount = 10;
 
     private Long userId1;
@@ -48,6 +54,8 @@ public class OrderFacadeConcurrencyTest {
     private Long pointId2;
     private Long stockId1;
     private Long stockId2;
+    private Long couponId1;
+    private Long couponId2;
 
     @Autowired
     private UserRepository userRepository;
@@ -104,6 +112,10 @@ public class OrderFacadeConcurrencyTest {
         stock2 = stockRepository.save(stock2);
         stockId2 = stock2.getId();
 
+        // 쿠폰 저장
+        Coupon coupon = Coupon.from(userId1,"정액할인쿠폰", CouponType.PRICE.name(), 5000L, 0);
+        coupon = couponRepository.save(coupon);
+        couponId1 = coupon.getId();
     }
 
     @DisplayName("동일한 유저가 서로 다른 주문을 동시에 수행해도, 포인트가 정상적으로 차감된다.")
@@ -116,7 +128,7 @@ public class OrderFacadeConcurrencyTest {
             executorService.submit(() -> {
                 try {
                     List<OrderItemResult> items = List.of(new OrderItemResult(productId1, 1));
-                    orderFacade.placeOrder(userId1, items, "ORDER-SEQ-" + Thread.currentThread().getId());
+                    orderFacade.placeOrder(userId1, items, "ORDER-SEQ-" + Thread.currentThread().getId(), -1L);
                 } catch (Exception e) {
                     // 예외 무시 (충돌이 날 수도 있음)
                     e.printStackTrace();
@@ -165,7 +177,7 @@ public class OrderFacadeConcurrencyTest {
                         userId = userId1;
                         items = List.of(new OrderItemResult(productId1, 1));
                     }
-                    orderFacade.placeOrder(userId, items, "ORDER-SEQ-" + Thread.currentThread().getId());
+                    orderFacade.placeOrder(userId, items, "ORDER-SEQ-" + Thread.currentThread().getId(), -1L);
                 } catch (Exception e) {
                     // 예외 무시 (충돌이 날 수도 있음)
                     e.printStackTrace();
@@ -196,6 +208,45 @@ public class OrderFacadeConcurrencyTest {
         assertThat(point2.getBalance().getValue()).isEqualTo(15000);
         assertThat(orders1.size()).isLessThanOrEqualTo(5); // 일부는 실패 가능
         assertThat(orders2.size()).isLessThanOrEqualTo(5); // 일부는 실패 가능
+    }
+
+    @DisplayName("동일한 쿠폰으로 여러 기기에서 동시에 주문해도, 쿠폰은 단 한번만 사용되어야 한다.")
+    @Test
+    void should_use_coupon_only_once_when_multiple_orders_are_placed_simultaneously_with_same_coupon() throws InterruptedException {
+        ExecutorService executorService = Executors.newFixedThreadPool(threadCount);
+        CountDownLatch latch = new CountDownLatch(threadCount);
+
+        for (int i = 0; i < threadCount; i++) {
+            executorService.submit(() -> {
+                try {
+                    List<OrderItemResult> items = List.of(new OrderItemResult(productId1, 1));
+                    orderFacade.placeOrder(userId1, items, "ORDER-SEQ-" + Thread.currentThread().getId(), couponId1);
+                } catch (Exception e) {
+                    // 예외 무시 (충돌이 날 수도 있음)
+                    e.printStackTrace();
+                } finally {
+                    latch.countDown();
+                }
+            });
+        }
+
+        latch.await();
+        executorService.shutdown();
+
+        // 검증
+        Stock stock = stockRepository.findById(stockId1).orElseThrow();
+        Point point = pointRepository.findById(pointId1).orElseThrow();
+        Coupon coupon = couponRepository.findById(couponId1).orElseThrow();
+        List<Order> orders = orderRepository.findAllByUserId(userId1);
+
+        System.out.println("최종 재고 수량 = " + stock.getQuantity());
+        System.out.println("최종 포인트 잔액 = " + point.getBalance().getValue());
+        System.out.println("쿠폰 사용 상태 = " + coupon.isUsed());
+        System.out.println("성공한 주문 수 = " + orders.size());
+
+        assertThat(stock.getQuantity()).isEqualTo(9);
+        assertThat(point.getBalance().getValue()).isEqualTo(19000);
+        assertThat(orders.size()).isLessThanOrEqualTo(1); // 일부는 실패 가능
     }
 }
 

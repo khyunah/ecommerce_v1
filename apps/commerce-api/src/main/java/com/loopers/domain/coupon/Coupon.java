@@ -1,15 +1,10 @@
 package com.loopers.domain.coupon;
 
 import com.loopers.domain.BaseEntity;
-import com.loopers.domain.product.vo.Money;
-import com.loopers.support.error.CoreException;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-
-import java.math.BigDecimal;
-import java.math.RoundingMode;
 
 @Entity
 @NoArgsConstructor
@@ -19,7 +14,7 @@ import java.math.RoundingMode;
 public class Coupon extends BaseEntity {
 
     @Column(nullable = false)
-    private Long userId;
+    private Long refUserId;
 
     @Column(nullable = false)
     private String name;
@@ -35,8 +30,11 @@ public class Coupon extends BaseEntity {
     @Column(nullable = false)
     private boolean isUsed = false;
 
-    private Coupon(Long userId, String name, CouponType couponType, Long discountPrice, int discountRate){
-        this.userId = userId;
+    @Version
+    private Long version;
+
+    private Coupon(Long refUserId, String name, CouponType couponType, Long discountPrice, int discountRate){
+        this.refUserId = refUserId;
         this.name = name;
         this.couponType = couponType;
         this.discountPrice = discountPrice;

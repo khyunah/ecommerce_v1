@@ -1,5 +1,7 @@
 package com.loopers.application.order;
 
+import com.loopers.domain.coupon.Coupon;
+import com.loopers.domain.coupon.CouponService;
 import com.loopers.domain.order.*;
 import com.loopers.domain.point.Point;
 import com.loopers.domain.point.PointService;
@@ -26,52 +28,66 @@ public class OrderFacade {
     private final PointService pointService;
     private final ProductService productService;
     private final OrderService orderService;
+    private final CouponService couponService;
 
     @Transactional
-    public Order placeOrder(Long userId, List<OrderItemResult> items, String orderSeq) {
+    public Order placeOrder(Long userId, List<OrderItemResult> items, String orderSeq, Long couponId) {
 
         // 주문 중복 체크
 
 
         // 사용자 정보
         User user = userService.get(userId);
+        Order order = null;
 
-        // 재고처리
-        for (OrderItemResult item : items) {
-            Stock stock = stockService.getByRefProductIdWithLock(item.productId());
-            stockService.updateQuantity(stock, item.quantity());
-            System.out.println("stock 확인: " + stock.getQuantity());
+        try {
+            // 재고처리
+            for (OrderItemResult item : items) {
+                Stock stock = stockService.getByRefProductIdWithLock(item.productId());
+                stockService.updateQuantity(stock, item.quantity());
+                System.out.println("stock 확인: " + stock.getQuantity());
+            }
+
+            List<OrderItem> orderItems = new ArrayList<>();
+
+            // 주문 상품 존재 확인 및 주문아이템 추가
+            long totalPrice = 0L;
+            for (OrderItemResult item : items) {
+                Product product = productService.getDetail(item.productId());
+                System.out.println("product 확인: " + product.getName());
+                totalPrice += product.getSellingPrice().getValue().longValue();
+                System.out.println("product 할인가격: " + product.getSellingPrice().getValue().longValue());
+                System.out.println("product 원가격: " + product.getOriginalPrice().getValue().longValue());
+                orderItems.add(OrderItem.create(
+                        product.getId(),
+                        item.quantity(),
+                        product.getName(),
+                        product.getSellingPrice(),
+                        product.getOriginalPrice()
+                ));
+            }
+
+            // 쿠폰 적용
+            if(couponId > -1){
+                Coupon coupon = couponService.get(couponId, userId);
+                coupon.useCoupon();
+            }
+
+            // 포인트 차감
+            Point point = pointService.getByRefUserIdWithLock(userId);
+            System.out.println("point 확인: " + point.getRefUserId());
+            Point.minus(point, totalPrice);
+            pointService.save(point);
+
+            // 주문 생성
+            order = Order.create(user.getId(), orderSeq, orderItems);
+            order = orderService.save(order);
+            System.out.println("order 확인: " + order.getOrderStatus());
+
+        } catch (Exception e){
+
         }
 
-        List<OrderItem> orderItems = new ArrayList<>();
-
-        // 주문 상품 존재 확인 및 주문아이템 추가
-        Long totalPrice = 0L;
-        for (OrderItemResult item : items) {
-            Product product = productService.getDetail(item.productId());
-            System.out.println("product 확인: " + product.getName());
-            totalPrice += product.getSellingPrice().getValue().longValue();
-            System.out.println("product 할인가격: " + product.getSellingPrice().getValue().longValue());
-            System.out.println("product 원가격: " + product.getOriginalPrice().getValue().longValue());
-            orderItems.add(OrderItem.create(
-                    product.getId(),
-                    item.quantity(),
-                    product.getName(),
-                    product.getSellingPrice(),
-                    product.getOriginalPrice()
-            ));
-        }
-
-        // 포인트 차감
-        Point point = pointService.getByRefUserIdWithLock(userId);
-        System.out.println("point 확인: " + point.getRefUserId());
-        Point.minus(point, totalPrice);
-        pointService.save(point);
-
-        // 주문 생성
-        Order order = Order.create(user.getId(), orderSeq, orderItems);
-        order = orderService.save(order);
-        System.out.println("order 확인: " + order.getOrderStatus());
         externalOrderSender.sendOrder(order);
         return order;
     }

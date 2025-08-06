@@ -16,4 +16,14 @@ public class CouponRepositoryImpl implements CouponRepository {
     public Optional<Coupon> findById(Long id) {
         return couponJpaRepository.findById(id);
     }
+
+    @Override
+    public Optional<Coupon> findByIdAndRefUserIdWithLock(Long id, Long refUserId) {
+        return couponJpaRepository.findByIdAndRefUserIdWithLock(id, refUserId);
+    }
+
+    @Override
+    public Coupon save(Coupon coupon) {
+        return couponJpaRepository.save(coupon);
+    }
 }

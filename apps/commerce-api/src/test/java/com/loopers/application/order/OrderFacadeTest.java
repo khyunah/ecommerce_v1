@@ -66,7 +66,7 @@ class OrderFacadeTest {
         Long usePoint = 3000L;
 
         // when
-        Order order = orderFacade.placeOrder(user.getId(), items, "ORDER-123");
+        Order order = orderFacade.placeOrder(user.getId(), items, "ORDER-123", -1L);
 
         // then
         assertThat(order.getId()).isNotNull();

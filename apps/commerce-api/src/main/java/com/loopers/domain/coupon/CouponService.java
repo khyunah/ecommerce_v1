@@ -10,8 +10,8 @@ import org.springframework.stereotype.Component;
 public class CouponService {
     private final CouponRepository couponRepository;
 
-    public Coupon get(Long id){
-        return couponRepository.findById(id)
+    public Coupon get(Long id, Long userId) {
+        return couponRepository.findByIdAndRefUserIdWithLock(id, userId)
                 .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "쿠폰을 찾을 수 없습니다."));
     }
 }
