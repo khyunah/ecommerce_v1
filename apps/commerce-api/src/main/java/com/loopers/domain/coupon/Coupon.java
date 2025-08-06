@@ -96,4 +96,10 @@ public class Coupon extends BaseEntity {
         return Math.max(0, discountedPrice);
     }
 
+    public void useCoupon(){
+        if(isUsed){
+           throw new IllegalArgumentException("이미 사용한 쿠폰입니다.");
+        }
+        isUsed = true;
+    }
 }
