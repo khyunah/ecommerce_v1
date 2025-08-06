@@ -143,5 +143,59 @@ public class OrderFacadeConcurrencyTest {
         assertThat(orders.size()).isLessThanOrEqualTo(10); // 일부는 실패 가능
     }
 
+    @DisplayName("동일한 상품에 대해 여러 주문이 동시에 요청되어도, 재고가 정상적으로 차감된다.")
+    @Test
+    void should_deduct_stock_correctly_when_multiple_orders_for_same_product_are_placed_concurrently() throws InterruptedException {
+        ExecutorService executorService = Executors.newFixedThreadPool(threadCount);
+        CountDownLatch latch = new CountDownLatch(threadCount);
+
+        // 두명의 유저가 하나의 상품을 여러번 주문
+        for (int i = 0; i < threadCount; i++) {
+            int finalI = i;
+            executorService.submit(() -> {
+                try {
+                    Long userId = 0L;
+                    List<OrderItemResult> items = null;
+                    if(finalI%2 == 0){
+                        System.out.println("짝수: "+finalI%2);
+                        userId = userId2;
+                        items = List.of(new OrderItemResult(productId1, 1));
+                    } else {
+                        System.out.println("홀수: "+finalI%2);
+                        userId = userId1;
+                        items = List.of(new OrderItemResult(productId1, 1));
+                    }
+                    orderFacade.placeOrder(userId, items, "ORDER-SEQ-" + Thread.currentThread().getId());
+                } catch (Exception e) {
+                    // 예외 무시 (충돌이 날 수도 있음)
+                    e.printStackTrace();
+                } finally {
+                    latch.countDown();
+                }
+            });
+        }
+
+        latch.await();
+        executorService.shutdown();
+
+        // 검증
+        Stock stock = stockRepository.findById(stockId1).orElseThrow();
+        Point point1 = pointRepository.findById(pointId1).orElseThrow();
+        Point point2 = pointRepository.findById(pointId2).orElseThrow();
+        List<Order> orders1 = orderRepository.findAllByUserId(userId1);
+        List<Order> orders2 = orderRepository.findAllByUserId(userId2);
+
+        System.out.println("최종 재고 수량 = " + stock.getQuantity());
+        System.out.println("user1 최종 포인트 잔액 = " + point1.getBalance().getValue());
+        System.out.println("user2 최종 포인트 잔액 = " + point2.getBalance().getValue());
+        System.out.println("user1 성공한 주문 수 = " + orders1.size());
+        System.out.println("user2 성공한 주문 수 = " + orders2.size());
+
+        assertThat(stock.getQuantity()).isEqualTo(0);
+        assertThat(point1.getBalance().getValue()).isEqualTo(15000);
+        assertThat(point2.getBalance().getValue()).isEqualTo(15000);
+        assertThat(orders1.size()).isLessThanOrEqualTo(5); // 일부는 실패 가능
+        assertThat(orders2.size()).isLessThanOrEqualTo(5); // 일부는 실패 가능
+    }
 }
 
