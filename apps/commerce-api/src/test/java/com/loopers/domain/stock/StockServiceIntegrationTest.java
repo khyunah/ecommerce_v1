@@ -33,7 +33,7 @@ public class StockServiceIntegrationTest {
     void 재고가_저장된다(){
         // given
         // when
-        Stock stock = stockSpyService.save(Stock.from(1L,100));
+        Stock stock = stockSpyService.save(Stock.from(111L,100));
 
         // than
         assertThat(stock.getQuantity()).isEqualTo(100);
@@ -42,7 +42,7 @@ public class StockServiceIntegrationTest {
     @Test
     void 재고가_업데이트된다(){
         // given
-        Stock stock_ = Stock.from(1L,100);
+        Stock stock_ = Stock.from(112L,100);
         Stock stock = stockSpyService.save(stock_);
 
         // when
@@ -56,7 +56,7 @@ public class StockServiceIntegrationTest {
     @Test
     void should_throw_not_found_exception_when_stock_does_not_exist(){
         // given
-        Long stockId = 1L;
+        Long stockId = 130L;
 
         // when
         CoreException exception = assertThrows(CoreException.class, () -> {
@@ -72,7 +72,7 @@ public class StockServiceIntegrationTest {
     @Test
     void should_throw_illegal_argument_exception_when_stock_is_insufficient(){
         // given
-        Stock stock_ = Stock.from(1L,10);
+        Stock stock_ = Stock.from(113L,10);
         Stock stock = stockSpyService.save(stock_);
 
         // when

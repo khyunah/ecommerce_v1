@@ -3,6 +3,8 @@ package com.loopers.interfaces.api.user;
 import com.loopers.application.user.in.UserRegisterCommand;
 import com.loopers.application.user.out.UserInfo;
 import com.loopers.application.user.UserFacade;
+import com.loopers.support.auth.AuthenticatedUserIdProvider;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -23,9 +25,10 @@ public class UserV1Controller {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-    @GetMapping("/me/{loingId}")
-    public ResponseEntity<UserV1Dto.UserInfoResponse> get(@PathVariable String loingId){
-        UserInfo userInfo = userFacade.get(loingId);
+    @GetMapping("/me")
+    public ResponseEntity<UserV1Dto.UserInfoResponse> get(HttpServletRequest headers){
+        Long userId = AuthenticatedUserIdProvider.getUserId(headers);
+        UserInfo userInfo = userFacade.get(userId);
         UserV1Dto.UserInfoResponse response = UserV1Dto.UserInfoResponse.from(userInfo);
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }

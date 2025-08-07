@@ -121,7 +121,7 @@ class OrderV1E2ETest {
 
             // when & then
             mockMvc.perform(post("/api/v1/orders")
-                            .header("X-USER-ID", userId1.toString())
+                            .header("X-USER-ID", userId1)
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isOk())
@@ -208,7 +208,7 @@ class OrderV1E2ETest {
         void returnsOrderDetail_whenExistingUserRequestsIt() throws Exception {
             // given
             List<OrderItem> items = List.of(new OrderItem(1L,1,"티셔츠", Money.from(BigDecimal.valueOf(1000)),Money.from(BigDecimal.valueOf(1200))));
-            Order order = orderRepository.save(Order.create(1L,"seq1123", items));
+            Order order = orderRepository.save(Order.create(userId1,"seq1123", items));
 
 
             // when & then

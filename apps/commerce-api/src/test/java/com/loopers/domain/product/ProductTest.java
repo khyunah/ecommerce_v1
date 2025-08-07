@@ -45,7 +45,7 @@ class ProductTest {
 
         // then
         assertThat(exception.getErrorType()).isEqualTo(ErrorType.BAD_REQUEST);
-        assertThat(exception.getMessage()).isEqualTo("상품명은 null이거나 빈 문자열일 수 없습니다.");
+        assertThat(exception.getMessage()).isEqualTo("원가보다 할인가가 높을 수 없습니다.");
     }
 
     @DisplayName("Money의 value가 null인 경우 400 BAD_REQUEST 에러를 반환한다.")

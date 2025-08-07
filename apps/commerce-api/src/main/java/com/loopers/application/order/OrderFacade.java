@@ -89,6 +89,7 @@ public class OrderFacade {
             System.out.println("order 확인: " + order.getOrderStatus());
 
         } catch (Exception e){
+            e.printStackTrace();
             throw new CoreException(ErrorType.BAD_REQUEST, "주문 중 에러가 발생했습니다. 다시 시도해주세요.");
         }
         OrderCreateResult result = null;

@@ -46,7 +46,7 @@ class UserV1ApiE2ETest {
                     "asd123",
                     "test123@naver.com",
                     "1994-03-15",
-                    "FEMALE"
+                    "F"
             );
             // when & then
             mockMvc.perform(post("/api/v1/users")
@@ -92,12 +92,14 @@ class UserV1ApiE2ETest {
             User user = userService.register(User.from(userId,email, birthDate, "F"));
 
             // when & then
-            mockMvc.perform(get("/api/v1/users/me/"+user.getId())
+            mockMvc.perform(get("/api/v1/users/me")
+                            .header("X-USER-ID", user.getId())
                             .contentType(MediaType.APPLICATION_JSON))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.loginId").value(user.getUserId()))
-                    .andExpect(jsonPath("$.email").value(user.getEmail()))
-                    .andExpect(jsonPath("$.birthDate").value(user.getBirthDate().toString()))
+                    .andExpect(jsonPath("$.id").value(user.getId()))
+                    .andExpect(jsonPath("$.userId").value(user.getUserId().getValue()))
+                    .andExpect(jsonPath("$.email").value(user.getEmail().getValue()))
+                    .andExpect(jsonPath("$.birthDate").value(user.getBirthDate().getValue()))
                     .andExpect(jsonPath("$.gender").value(user.getGender().name()))
                     .andDo(print());
         }
@@ -106,9 +108,10 @@ class UserV1ApiE2ETest {
         @Test
         void returns404NotFound_whenUserIdDoesNotExist() throws Exception {
             // given
-            String userId = "test1111";
+            Long userId = 240L;
             // when & then
-            mockMvc.perform(get("/api/v1/users/me/"+userId)
+            mockMvc.perform(get("/api/v1/users/me")
+                            .header("X-USER-ID", userId)
                             .contentType(MediaType.APPLICATION_JSON))
                     .andExpect(status().isNotFound());
         }

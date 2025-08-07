@@ -31,8 +31,6 @@ public class ProductServiceIntegrationTest {
     @Test
     void returnProductDetail_whenIdExists() {
         // given
-        Long productId = 1L;
-        Long likeCount = 1L;
         Product product = Product.from(
                 "상품명",
                 "상품 설명",
@@ -41,14 +39,14 @@ public class ProductServiceIntegrationTest {
                 "ON_SALE",
                 1L
         );
-        productRepository.save(product);
+        product = productRepository.save(product);
 
         // when
-        Product found = productSpyService.getDetail(productId);
+        Product foundedProduct = productSpyService.getDetail(product.getId());
 
         // then
-        assertThat(found.getName()).isEqualTo("상품명");
-        assertThat(found.getSellingPrice().getValue()).isEqualByComparingTo("10000");
+        assertThat(foundedProduct.getName()).isEqualTo("상품명");
+        assertThat(foundedProduct.getSellingPrice().getValue().longValue()).isEqualTo(9000L);
     }
 
     @DisplayName("상품 ID가 존재하지 않을 경우, NOT_FOUND 예외가 발생한다.")

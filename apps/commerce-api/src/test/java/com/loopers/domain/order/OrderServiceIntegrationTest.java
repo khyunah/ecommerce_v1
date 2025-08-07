@@ -32,8 +32,8 @@ class OrderServiceIntegrationTest {
     @Test
     void returnsOrderList_WhenUserExists() {
         // given
-        List<OrderItem> items = List.of(new OrderItem(1L,1,"티셔츠", Money.from(BigDecimal.valueOf(1000)),Money.from(BigDecimal.valueOf(1200))));
-        Order order = orderRepository.save(Order.create(1L,"seq1123", items));
+        List<OrderItem> items = List.of(new OrderItem(200L,1,"티셔츠", Money.from(BigDecimal.valueOf(1000)),Money.from(BigDecimal.valueOf(1200))));
+        Order order = orderRepository.save(Order.create(20L,"seq1123", items));
 
         // when
         List<Order> results = orderSpyService.getOrders(order.getRefUserId());
