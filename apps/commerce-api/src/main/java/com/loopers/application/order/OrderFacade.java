@@ -1,109 +1,112 @@
 package com.loopers.application.order;
 
-import com.loopers.domain.order.ExternalOrderSender;
-import com.loopers.domain.order.Order;
-import com.loopers.domain.order.OrderItem;
-import com.loopers.domain.order.OrderRepository;
+import com.loopers.application.order.in.OrderCreateCommand;
+import com.loopers.application.order.in.OrderItemCriteria;
+import com.loopers.application.order.out.OrderCreateResult;
+import com.loopers.application.order.out.OrderDetailResult;
+import com.loopers.application.order.out.OrderResult;
+import com.loopers.domain.coupon.Coupon;
+import com.loopers.domain.coupon.CouponService;
+import com.loopers.domain.order.*;
 import com.loopers.domain.point.Point;
-import com.loopers.domain.point.PointRepository;
-import com.loopers.domain.point.vo.Balance;
+import com.loopers.domain.point.PointService;
 import com.loopers.domain.product.Product;
-import com.loopers.domain.product.ProductRepository;
+import com.loopers.domain.product.ProductService;
 import com.loopers.domain.stock.Stock;
-import com.loopers.domain.stock.StockRepository;
+import com.loopers.domain.stock.StockService;
 import com.loopers.domain.user.User;
-import com.loopers.domain.user.UserRepository;
-import com.loopers.domain.user.vo.UserId;
+import com.loopers.domain.user.UserService;
 import com.loopers.support.error.CoreException;
 import com.loopers.support.error.ErrorType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @RequiredArgsConstructor
 @Component
 public class OrderFacade {
-    private final OrderRepository orderRepository;
-    private final ProductRepository productRepository;
-    private final StockRepository stockRepository;
-    private final UserRepository userRepository;
-    private final PointRepository pointRepository;
     private final ExternalOrderSender externalOrderSender;
 
+    private final UserService userService;
+    private final StockService stockService;
+    private final PointService pointService;
+    private final ProductService productService;
+    private final OrderService orderService;
+    private final CouponService couponService;
+
     @Transactional
-    public Order placeOrder(String userIdLong, List<OrderItemResult> items, int userPointsToUse) {
-        UserId userId = UserId.from(String.valueOf(userIdLong));
-        User user = userRepository.findByUserId(userId)
-                .orElseThrow(() -> new CoreException(ErrorType.BAD_REQUEST, "사용자가 존재하지 않습니다."));
+    public OrderCreateResult placeOrder(OrderCreateCommand command) {
 
-        for (OrderItemResult item : items) {
-            Stock stock = stockRepository.findByRefProductId(item.productId())
-                    .orElseThrow(() -> new CoreException(ErrorType.BAD_REQUEST, "상품 재고가 존재하지 않습니다: " + item.productId()));
-            if (stock.getQuantity() < item.quantity()) {
-                throw new CoreException(ErrorType.BAD_REQUEST, "재고가 부족합니다: " + item.productId());
+        // 사용자 정보
+        User user = userService.get(command.userId());
+        Order order = null;
+        long totalPrice = 0L;
+
+        try {
+            // 재고처리
+            for (OrderItemCriteria item : command.items()) {
+                Stock stock = stockService.getByRefProductIdWithLock(item.productId());
+                stockService.updateQuantity(stock, item.quantity());
+                System.out.println("stock 확인: " + stock.getQuantity());
             }
-            stockRepository.save(new Stock(stock.getRefProductId(), stock.getQuantity() - item.quantity()));
+
+            List<OrderItem> orderItems = new ArrayList<>();
+
+            // 주문 상품 존재 확인 및 주문아이템 추가
+            for (OrderItemCriteria item : command.items()) {
+                Product product = productService.getDetail(item.productId());
+                System.out.println("product 확인: " + product.getName());
+                totalPrice += product.getSellingPrice().getValue().longValue() * item.quantity();
+                System.out.println("product 할인가격: " + product.getSellingPrice().getValue().longValue());
+                System.out.println("product 원가격: " + product.getOriginalPrice().getValue().longValue());
+                orderItems.add(OrderItem.create(
+                        product.getId(),
+                        item.quantity(),
+                        product.getName(),
+                        product.getSellingPrice(),
+                        product.getOriginalPrice()
+                ));
+            }
+
+            // 쿠폰 적용
+            if(command.couponId() > -1){
+                Coupon coupon = couponService.get(command.couponId(), command.userId());
+                coupon.useCoupon();
+            }
+
+            // 포인트 차감
+            Point point = pointService.getByRefUserIdWithLock(command.userId());
+            System.out.println("point 확인: " + point.getRefUserId());
+            Point.minus(point, totalPrice);
+            pointService.save(point);
+
+            // 주문 생성
+            order = Order.create(user.getId(), command.orderSeq(), orderItems);
+            order = orderService.save(order);
+            System.out.println("order 확인: " + order.getOrderStatus());
+
+        } catch (Exception e){
+            e.printStackTrace();
+            throw new CoreException(ErrorType.BAD_REQUEST, "주문 중 에러가 발생했습니다. 다시 시도해주세요.");
         }
-
-        Point point = pointRepository.findByRefUserId(userId)
-                .orElseThrow(() -> new CoreException(ErrorType.BAD_REQUEST, "포인트 정보가 존재하지 않습니다."));
-        if (point.getBalance().getValue() < userPointsToUse) {
-            throw new CoreException(ErrorType.BAD_REQUEST, "포인트가 부족합니다.");
+        OrderCreateResult result = null;
+        if(order != null){
+            result = OrderCreateResult.from(order, totalPrice);
+            externalOrderSender.sendOrder(order);
         }
-        Balance deducted = Balance.minus(point, userPointsToUse);
-        Point updatedPoint = new Point(userId, deducted);
-        pointRepository.save(updatedPoint);
-
-        List<OrderItem> orderItems = items.stream()
-                .map(req -> {
-                    Product product = productRepository.findById(req.productId())
-                            .orElseThrow(() -> new CoreException(ErrorType.BAD_REQUEST, "상품이 존재하지 않습니다: " + req.productId()));
-                    return OrderItem.create(
-                            product.getId(),
-                            req.quantity(),
-                            product.getName(),
-                            product.getSellingPrice(),
-                            product.getOriginalPrice());
-                }).toList();
-
-        Order order = Order.create(user.getId(), orderItems);
-        order = orderRepository.save(order); // orderItems 는 cascade로 저장됨
-
-        externalOrderSender.sendOrder(order);
-        return order;
+        return result;
     }
 
-    public List<OrderSummaryResult> getOrders(Long refUserId) {
-        List<Order> orders = orderRepository.findAllByUserId(refUserId);
-
-        return orders.stream()
-                .flatMap(order -> order.getOrderItems().stream().map(item ->
-                        new OrderSummaryResult(
-                                order.getId(),
-                                order.getOrderStatus().name(),
-                                order.getCreatedAt().toLocalDateTime(),
-                                item.getSellingPrice().getValue(),
-                                item.getProductId()
-                        )
-                ))
-                .toList();
+    public List<OrderResult> getOrders(Long refUserId) {
+        List<Order> orders = orderService.getOrders(refUserId);
+        return OrderResult.from(orders);
     }
 
-    public OrderDetailResult getOrderDetail(Long userId, Long orderId) {
-        Order order = orderRepository.findByIdAndUserId(orderId, userId)
-                .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "주문을 찾을 수 없습니다."));
-
-        List<OrderDetailResult.OrderItemDetail> items = order.getOrderItems().stream()
-                .map(item -> new OrderDetailResult.OrderItemDetail(
-                        item.getProductName(),
-                        item.getQuantity(),
-                        item.getOriginalPrice().getValue(),
-                        item.getSellingPrice().getValue()
-                ))
-                .toList();
-
-        return new OrderDetailResult(order.getId(), order.getOrderStatus().name(), items);
+    public OrderDetailResult getOrderDetail(Long orderId, Long userId) {
+        Order order = orderService.getOrderDetail(orderId, userId);
+        return OrderDetailResult.from(order);
     }
 }

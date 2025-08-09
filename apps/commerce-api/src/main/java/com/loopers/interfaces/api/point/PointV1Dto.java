@@ -5,7 +5,7 @@ import com.loopers.application.point.out.PointInfo;
 
 public class PointV1Dto {
     public record PointChargeRequest(
-            String refUserId,
+            Long refUserId,
             Long amount
     ){
         public static PointChargeCommand toCommand(PointV1Dto.PointChargeRequest request) {
@@ -16,7 +16,7 @@ public class PointV1Dto {
         }
     }
     public record PointInfoResponse(
-            String refUserId,
+            Long refUserId,
             Long balance
     ){
         public static PointInfoResponse from(PointInfo pointInfo) {

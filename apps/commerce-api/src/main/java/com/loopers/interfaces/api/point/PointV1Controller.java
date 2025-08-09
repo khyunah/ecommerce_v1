@@ -18,7 +18,7 @@ public class PointV1Controller {
     private final PointFacade pointFacade;
 
     @GetMapping("/{userId}")
-    public ResponseEntity<PointV1Dto.PointInfoResponse> get(@PathVariable String userId, @RequestHeader Map<String, String> headers){
+    public ResponseEntity<PointV1Dto.PointInfoResponse> get(@PathVariable Long userId, @RequestHeader Map<String, String> headers){
         if( null == headers.get("X-USER-ID") && "".equals(headers.get("X-USER-ID"))){
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
         }

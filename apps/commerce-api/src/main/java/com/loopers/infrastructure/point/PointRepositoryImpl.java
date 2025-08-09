@@ -3,7 +3,6 @@ package com.loopers.infrastructure.point;
 import com.loopers.domain.point.Point;
 import com.loopers.domain.point.PointRepository;
 import com.loopers.domain.point.vo.Balance;
-import com.loopers.domain.user.vo.UserId;
 import com.loopers.support.error.CoreException;
 import com.loopers.support.error.ErrorType;
 import lombok.RequiredArgsConstructor;
@@ -18,8 +17,13 @@ public class PointRepositoryImpl implements PointRepository {
     private final PointJpaRepository pointJpaRepository;
 
     @Override
-    public Optional<Point> findByRefUserId(UserId refUserId) {
+    public Optional<Point> findByRefUserId(Long refUserId) {
         return pointJpaRepository.findByRefUserId(refUserId);
+    }
+
+    @Override
+    public Optional<Point> findByRefUserIdWithLock(Long refUserId) {
+        return pointJpaRepository.findByRefUserIdWithLock(refUserId);
     }
 
     @Override
@@ -28,8 +32,8 @@ public class PointRepositoryImpl implements PointRepository {
     }
 
     @Override
-    public void deduct(String userId, long amount) {
-        Point point = pointJpaRepository.findByRefUserId(UserId.from(userId))
+    public void deduct(Long userId, long amount) {
+        Point point = pointJpaRepository.findByRefUserId(userId)
                 .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "사용자 포인트 정보를 찾을 수 없습니다."));
 
         if (point.getBalance().getValue() < amount) {
@@ -39,5 +43,10 @@ public class PointRepositoryImpl implements PointRepository {
         Balance newBalance = Balance.minus(point, amount);
         point = new Point(point.getRefUserId(), newBalance);
         pointJpaRepository.save(point);
+    }
+
+    @Override
+    public Optional<Point> findById(Long pointId) {
+        return pointJpaRepository.findById(pointId);
     }
 }

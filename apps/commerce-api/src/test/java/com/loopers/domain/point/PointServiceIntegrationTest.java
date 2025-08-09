@@ -29,12 +29,12 @@ public class PointServiceIntegrationTest {
     @Test
     void returnUserInfo_whenIdExists() {
         // given
-        String userId = "test123";
+        Long userId = 100L;
         Point point = Point.from(userId, 10000L);
         Point savedPoint = pointRepository.save(point);
 
         // when
-        Point selectPoint = pointSpyService.get(userId);
+        Point selectPoint = pointSpyService.getByRefUserId(userId);
 
         // then
         assertThat(savedPoint.getBalance()).isEqualTo(selectPoint.getBalance());
@@ -44,11 +44,11 @@ public class PointServiceIntegrationTest {
     @Test
     void returnNull_whenUserIdNotFound() {
         // given
-        String refUserId = "test123";
+        Long refUserId = 100L;
 
         // when
         CoreException exception = assertThrows(CoreException.class, () -> {
-            pointSpyService.get(refUserId);
+            pointSpyService.getByRefUserId(refUserId);
         });
 
         // then
@@ -59,7 +59,8 @@ public class PointServiceIntegrationTest {
     @Test
     void failsToCharge_whenUserIdDoesNotExist() {
         // given
-        Point point = Point.from("test123", 10000L);
+        Long refUserId = 100L;
+        Point point = Point.from(refUserId, 10000L);
         Long amount = 1000L;
 
         // when
@@ -69,6 +70,26 @@ public class PointServiceIntegrationTest {
 
         // then
         assertThat(exception.getMessage()).isEqualTo("존재하지 않는 유저 ID 로 충전을 시도했습니다.");
+
+    }
+
+    @DisplayName("포인트 잔액이 부족할 경우 IllegalArgumentException 에러를 반환한다.")
+    @Test
+    void should_throw_illegal_argument_exception_when_point_balance_is_insufficient() {
+        // given
+        Long userId = 100L;
+        Point point = Point.from(userId, 10000L);
+        Point savedPoint = pointRepository.save(point);
+        Long amount = 20000L;
+
+        // when
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
+            pointSpyService.minus(point, amount);
+        });
+
+        // then
+        assertThat(exception.getClass()).isEqualTo(IllegalArgumentException.class);
+        assertThat(exception.getMessage()).isEqualTo("차감할 수 있는 포인트가 부족합니다.");
 
     }
 

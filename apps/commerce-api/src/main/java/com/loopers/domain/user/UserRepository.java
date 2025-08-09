@@ -8,4 +8,5 @@ public interface UserRepository {
     boolean existsByUserId(UserId id);
     Optional<User> save(User user);
     Optional<User> findByUserId(UserId userId);
+    Optional<User> findById(Long id);
 }

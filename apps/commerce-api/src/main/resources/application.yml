@@ -59,3 +59,10 @@ springdoc:
 logging:
   level:
     root: info
+
+---
+spring:
+  jpa:
+    hibernate:
+      ddl-auto: update
+    defer-datasource-initialization: true

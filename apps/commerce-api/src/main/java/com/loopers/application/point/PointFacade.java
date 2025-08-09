@@ -12,13 +12,13 @@ import org.springframework.stereotype.Component;
 public class PointFacade {
     private final PointService pointService;
 
-    public PointInfo get(String refUserId){
-        Point point = pointService.get(refUserId);
+    public PointInfo get(Long refUserId){
+        Point point = pointService.getByRefUserId(refUserId);
         return PointInfo.from(point);
     }
 
     public PointInfo charge(PointChargeCommand command){
-        Point point = pointService.get(command.refUserId());
+        Point point = pointService.getByRefUserId(command.refUserId());
         Point user = pointService.charge(point, command.amount());
         return PointInfo.from(user);
     }

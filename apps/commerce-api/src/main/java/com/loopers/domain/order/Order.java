@@ -13,21 +13,22 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter
-@Table(name = "order")
+@Table(name = "`order`")
 public class Order extends BaseEntity {
     @Column(nullable = false)
     private Long refUserId;
 
+    @Column(nullable = false, unique = true)
+    private String orderSeq;
+
     @Enumerated(EnumType.STRING)
     private OrderStatus orderStatus;
 
+    @OneToMany(cascade = CascadeType.ALL)
     @JoinColumn(name = "order_id")
     private List<OrderItem> orderItems = new ArrayList<>();
 
-    public static Order create(Long refUserId, List<OrderItem> orderItems) {
-        if(orderItems == null || orderItems.isEmpty()) {
-            throw new IllegalArgumentException("주문 아이템은 하나 이상이어야 합니다.");
-        }
-        return new Order(refUserId, OrderStatus.ORDERED, orderItems);
+    public static Order create(Long refUserId, String orderSeq, List<OrderItem> orderItems) {
+        return new Order(refUserId, orderSeq, OrderStatus.ORDERED, orderItems);
     }
 }

@@ -1,11 +1,13 @@
 package com.loopers.domain.point;
 
-import com.loopers.domain.user.vo.UserId;
-
 import java.util.Optional;
 
 public interface PointRepository {
-    Optional<Point> findByRefUserId(UserId refUserId);
+    Optional<Point> findByRefUserId(Long refUserId);
+
+    Optional<Point> findByRefUserIdWithLock(Long refUserId);
+
     Point save(Point point);
-    void deduct(String userId, long amount);
+    void deduct(Long userId, long amount);
+    Optional<Point> findById(Long pointId);
 }

@@ -43,10 +43,10 @@ class UserServiceIntegrationTest {
         // then
         assertAll(
                 () -> assertThat(savedUser).isNotNull(),
-                () -> assertThat(savedUser.getUserId()).isEqualTo(user.getUserId()),
-                () -> assertThat(savedUser.getEmail()).isEqualTo(user.getEmail()),
-                () -> assertThat(savedUser.getBirthDate()).isEqualTo(user.getBirthDate()),
-                () -> assertThat(savedUser.getGender()).isEqualTo(user.getGender())
+                () -> assertThat(savedUser.getUserId().getValue()).isEqualTo(user.getUserId().getValue()),
+                () -> assertThat(savedUser.getEmail().getValue()).isEqualTo(user.getEmail().getValue()),
+                () -> assertThat(savedUser.getBirthDate().getValue()).isEqualTo(user.getBirthDate().getValue()),
+                () -> assertThat(savedUser.getGender().name()).isEqualTo(user.getGender().name())
         );
 
         Mockito.verify(userSpyService, times(1)).register(any(User.class));
@@ -101,9 +101,11 @@ class UserServiceIntegrationTest {
         String userId = "test123";
 
         // when
-        User result = userSpyService.getByLoginId(userId);
+        CoreException exception = assertThrows(CoreException.class, () -> {
+            userSpyService.getByLoginId(userId);
+        });
 
         // then
-        assertThat(result).isNull();
+        assertThat(exception.getErrorType()).isEqualTo(ErrorType.NOT_FOUND);
     }
 }
