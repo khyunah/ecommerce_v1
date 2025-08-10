@@ -1,5 +1,6 @@
 package com.loopers.domain.product;
 
+import com.loopers.domain.product.vo.ProductSortType;
 import com.loopers.interfaces.api.product.ProductWithLikeCountDto;
 import com.loopers.support.error.CoreException;
 import com.loopers.support.error.ErrorType;
@@ -22,7 +23,7 @@ public class ProductService {
         return productRepository.existsById(id);
     }
 
-    public Page<ProductWithLikeCountDto> getProducts(Long brandId, Pageable pageable) {
-        return productRepository.findProductsWithLikeCount(brandId, pageable);
+    public Page<ProductWithLikeCountDto> getProducts(Long brandId, ProductSortType sortType, Pageable pageable) {
+        return productRepository.findProductsWithLikeCount(brandId, sortType, pageable);
     }
 }

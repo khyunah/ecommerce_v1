@@ -1,5 +1,6 @@
 package com.loopers.domain.product;
 
+import com.loopers.domain.product.vo.ProductSortType;
 import com.loopers.domain.product.vo.SaleStatus;
 import com.loopers.interfaces.api.product.ProductWithLikeCountDto;
 import org.junit.jupiter.api.BeforeEach;
@@ -48,17 +49,17 @@ class ProductsTest {
 
         Page<ProductWithLikeCountDto> page = new PageImpl<>(List.of(dto1, dto2), pageable, 2);
 
-        when(productRepository.findProductsWithLikeCount(eq(brandId), eq(pageable))).thenReturn(page);
+        when(productRepository.findProductsWithLikeCount(brandId, ProductSortType.LATEST, pageable)).thenReturn(page);
 
         // when
-        Page<ProductWithLikeCountDto> result = productService.getProducts(brandId, pageable);
+        Page<ProductWithLikeCountDto> result = productService.getProducts(brandId, ProductSortType.LATEST, pageable);
 
         // then
         assertThat(result).isNotNull();
         assertThat(result.getContent()).hasSize(2);
-        assertThat(result.getContent().get(0).getProductName()).isEqualTo("상품1");
-        assertThat(result.getContent().get(0).getLikeCount()).isEqualTo(5L);
-        assertThat(result.getContent().get(1).getProductName()).isEqualTo("상품2");
+        assertThat(result.getContent().get(0).productName()).isEqualTo("상품1");
+        assertThat(result.getContent().get(0).likeCount()).isEqualTo(5L);
+        assertThat(result.getContent().get(1).productName()).isEqualTo("상품2");
     }
 
     @DisplayName("브랜드 ID 없이 전체 상품을 조회해온다.")
@@ -72,12 +73,12 @@ class ProductsTest {
 
         Page<ProductWithLikeCountDto> page = new PageImpl<>(List.of(dto), pageable, 1);
 
-        when(productRepository.findProductsWithLikeCount(eq(null), eq(pageable))).thenReturn(page);
+        when(productRepository.findProductsWithLikeCount(null,ProductSortType.LATEST, eq(pageable))).thenReturn(page);
 
-        Page<ProductWithLikeCountDto> result = productService.getProducts(null, pageable);
+        Page<ProductWithLikeCountDto> result = productService.getProducts(null, ProductSortType.LATEST, pageable);
 
         assertThat(result).isNotNull();
         assertThat(result.getContent()).hasSize(1);
-        assertThat(result.getContent().get(0).getBrandName()).isEqualTo("브랜드2");
+        assertThat(result.getContent().get(0).brandName()).isEqualTo("브랜드2");
     }
 }
