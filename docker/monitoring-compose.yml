@@ -6,13 +6,33 @@ services:
       - "9090:9090"
     volumes:
       - ./grafana/prometheus.yml:/etc/prometheus/prometheus.yml
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+    networks:
+      - monitoring
 
   grafana:
-    image: grafana/grafana
+    image: grafana/grafana:latest
     ports:
-      - "3000:3000"
+      - "3001:3000"
     volumes:
-      - ./grafana/provisioning:/etc/grafana/provisioning
+      - grafana-storage:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
     environment:
       - GF_SECURITY_ADMIN_USER=admin
       - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_SECURITY_ALLOW_EMBEDDING=true
+    depends_on:
+      - prometheus
+    networks:
+      - monitoring
+
+volumes:
+  grafana-storage:
+
+networks:
+  monitoring:
+    driver: bridge

@@ -8,6 +8,8 @@ import jakarta.persistence.MappedSuperclass;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import lombok.Getter;
+
+import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
 
 /**
@@ -23,13 +25,13 @@ public abstract class BaseEntity {
     private final Long id = 0L;
 
     @Column(name = "created_at", nullable = false, updatable = false)
-    private ZonedDateTime createdAt;
+    private LocalDateTime createdAt;
 
     @Column(name = "updated_at", nullable = false)
-    private ZonedDateTime updatedAt;
+    private LocalDateTime updatedAt;
 
     @Column(name = "deleted_at")
-    private ZonedDateTime deletedAt;
+    private LocalDateTime deletedAt;
 
     /**
      * 엔티티의 유효성을 검증한다.
@@ -41,7 +43,7 @@ public abstract class BaseEntity {
     private void prePersist() {
         guard();
 
-        ZonedDateTime now = ZonedDateTime.now();
+        LocalDateTime now = LocalDateTime.now();
         this.createdAt = now;
         this.updatedAt = now;
     }
@@ -50,7 +52,7 @@ public abstract class BaseEntity {
     private void preUpdate() {
         guard();
 
-        this.updatedAt = ZonedDateTime.now();
+        this.updatedAt = LocalDateTime.now();
     }
 
     /**
@@ -58,7 +60,7 @@ public abstract class BaseEntity {
      */
     public void delete() {
         if (this.deletedAt == null) {
-            this.deletedAt = ZonedDateTime.now();
+            this.deletedAt = LocalDateTime.now();
         }
     }
 

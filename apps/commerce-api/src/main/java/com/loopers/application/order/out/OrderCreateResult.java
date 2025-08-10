@@ -14,7 +14,7 @@ public record OrderCreateResult(
         return new OrderCreateResult(
               order.getId(),
               order.getOrderStatus().name(),
-              order.getCreatedAt().toLocalDateTime(),
+              order.getCreatedAt(),
               totalPrice
         );
     }

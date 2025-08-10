@@ -17,7 +17,7 @@ public record OrderResult(
                         new OrderResult(
                                 order.getId(),
                                 order.getOrderStatus().name(),
-                                order.getCreatedAt().toLocalDateTime(),
+                                order.getCreatedAt(),
                                 item.getSellingPrice().getValue().longValue()
                         )
                 ))

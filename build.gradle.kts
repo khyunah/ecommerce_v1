@@ -70,6 +70,9 @@ subprojects {
         // Test Lombok
         testCompileOnly("org.projectlombok:lombok")
         testAnnotationProcessor("org.projectlombok:lombok")
+
+        // instancio 더미데이터 API
+        implementation ("org.instancio:instancio-core:2.0.0")
     }
 
     tasks.withType(Jar::class) { enabled = true }
