@@ -2,6 +2,7 @@ package com.loopers.application.dummy;
 
 import com.loopers.domain.BaseEntity;
 import com.loopers.domain.brand.Brand;
+import com.loopers.domain.like.Like;
 import com.loopers.domain.product.Product;
 import com.loopers.domain.product.vo.Money;
 import com.loopers.domain.product.vo.SaleStatus;
@@ -90,6 +91,33 @@ public class DummyDataInsertService {
 
             if (i % 1000 == 0) {
                 System.out.println("Inserted Product: " + i);
+            }
+        }
+
+        tx.commit();
+        session.close();
+    }
+
+    public void bulkInsertLikes(int count) {
+        SessionFactory sessionFactory = emf.unwrap(SessionFactory.class);
+        StatelessSession session = sessionFactory.openStatelessSession();
+        Transaction tx = session.beginTransaction();
+
+        for (int i = 0; i < count; i++) {
+            int finalI = i;
+            Like like = Instancio.of(Like.class)
+                    .supply(field("refUserId"), () -> ThreadLocalRandom.current().nextLong(1, 100))
+                    .supply(field("refProductId"), () -> ThreadLocalRandom.current().nextLong(1, 100000))
+                    // BaseEntity 필드들을 BaseEntity 클래스를 명시해서 설정
+                    .set(field(BaseEntity.class, "createdAt"), LocalDateTime.now())
+                    .set(field(BaseEntity.class, "updatedAt"), LocalDateTime.now())
+                    .set(field(BaseEntity.class, "deletedAt"), (LocalDateTime) null)
+                    .create();
+
+            session.insert(like);
+
+            if (i % 1000 == 0) {
+                System.out.println("Inserted Like: " + i);
             }
         }
 

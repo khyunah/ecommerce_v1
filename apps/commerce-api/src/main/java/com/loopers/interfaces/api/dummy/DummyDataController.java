@@ -27,6 +27,12 @@ public class DummyDataController {
         return ResponseEntity.ok("삽입 완료 : " + count);
     }
 
+    @PostMapping("/insertLike")
+    public ResponseEntity<String> insertLike(@RequestParam(defaultValue = "100000") int count) {
+        dummyDataInsertService.bulkInsertLikes(count);
+        return ResponseEntity.ok("삽입 완료 : " + count);
+    }
+
     @PostMapping("/insertUser")
     public ResponseEntity<String> insertUser(@RequestParam(defaultValue = "1000") int count) {
         dummyDataInsertService.bulkInsertUsers(count);
