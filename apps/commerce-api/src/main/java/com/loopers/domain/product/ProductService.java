@@ -26,4 +26,12 @@ public class ProductService {
     public Page<ProductWithLikeCountDto> getProducts(Long brandId, ProductSortType sortType, Pageable pageable) {
         return productRepository.findProductsWithLikeCount(brandId, sortType, pageable);
     }
+
+    public void increaseLikeCount(Product product){
+        Product.increaseLikeCount(product);
+    }
+
+    public void decreaseLikeCount(Product product){
+        Product.decreaseLikeCount(product);
+    }
 }
