@@ -8,6 +8,7 @@ import com.loopers.domain.product.Product;
 import com.loopers.domain.product.ProductService;
 import com.loopers.support.error.CoreException;
 import com.loopers.support.error.ErrorType;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -19,8 +20,9 @@ public class LikeFacade {
     private final LikeService likeService;
     private final ProductService productService;
 
+    @Transactional
     public boolean create(LikeActionCommand command){
-        if(productService.existsById(command.refProductId())){
+        if(!productService.existsById(command.refProductId())){
             throw new CoreException(ErrorType.NOT_FOUND, "상품 ID가 존재하지 않습니다.");
         }
         Product product = productService.getDetail(command.refProductId());
@@ -28,8 +30,9 @@ public class LikeFacade {
         return likeService.create(LikeActionCommand.toDomain(command));
     }
 
+    @Transactional
     public boolean delete(LikeActionCommand command) {
-        if(productService.existsById(command.refProductId())){
+        if(!productService.existsById(command.refProductId())){
             throw new CoreException(ErrorType.NOT_FOUND, "상품 ID가 존재하지 않습니다.");
         }
         Product product = productService.getDetail(command.refProductId());
