@@ -112,4 +112,31 @@ class ProductTest {
         assertThat(exception.getMessage()).isEqualTo("사용 가능한 SaleStatus가 아닙니다.");
     }
 
+    @DisplayName("상품 좋아요카운트 +1")
+    @Test
+    void increaseLikeCount_ifProductIsLiked() {
+        // given
+        Product product = Product.from("상품", "설명", BigDecimal.valueOf(1000L), BigDecimal.valueOf(1200L), "ON_SALE", 1L);
+
+        // when
+        Product.increaseLikeCount(product);
+
+        // then
+        assertThat(product.getLikeCount()).isEqualTo(1);
+    }
+
+    @DisplayName("상품 좋아요카운트 -1")
+    @Test
+    void decreaseLikeCount_ifProductIsLiked() {
+        // given
+        Product product = Product.from("상품", "설명", BigDecimal.valueOf(1000L), BigDecimal.valueOf(1200L), "ON_SALE", 1L);
+
+        // when
+        Product.increaseLikeCount(product);
+        Product.decreaseLikeCount(product);
+
+        // then
+        assertThat(product.getLikeCount()).isEqualTo(0);
+    }
+
 }

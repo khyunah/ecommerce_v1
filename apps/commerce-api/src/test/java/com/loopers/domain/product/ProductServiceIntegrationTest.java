@@ -47,6 +47,7 @@ public class ProductServiceIntegrationTest {
         // then
         assertThat(foundedProduct.getName()).isEqualTo("상품명");
         assertThat(foundedProduct.getSellingPrice().getValue().longValue()).isEqualTo(9000L);
+        assertThat(foundedProduct.getLikeCount()).isEqualTo(0L);
     }
 
     @DisplayName("상품 ID가 존재하지 않을 경우, NOT_FOUND 예외가 발생한다.")
