@@ -73,6 +73,9 @@ subprojects {
 
         // instancio 더미데이터 API
         implementation ("org.instancio:instancio-core:2.0.0")
+
+        // 스프링 캐시
+        implementation ("org.springframework.boot:spring-boot-starter-cache")
     }
 
     tasks.withType(Jar::class) { enabled = true }
