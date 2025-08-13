@@ -72,10 +72,10 @@ public class ProductServiceIntegrationTest {
         // given
         Long id = 1L;
         Product product = Product.from("상품", "설명", new BigDecimal("9000"), new BigDecimal("10000"), "ON_SALE", 1L);
-        productRepository.save(product);
+        product = productRepository.save(product);
 
         // when
-        boolean exists = productSpyService.existsById(id);
+        boolean exists = productSpyService.existsById(product.getId());
 
         // then
         assertThat(exists).isTrue();

@@ -73,7 +73,7 @@ class ProductsTest {
 
         Page<ProductWithLikeCountDto> page = new PageImpl<>(List.of(dto), pageable, 1);
 
-        when(productRepository.findProductsWithLikeCount(null,ProductSortType.LATEST, eq(pageable))).thenReturn(page);
+        when(productRepository.findProductsWithLikeCount(null,ProductSortType.LATEST, pageable)).thenReturn(page);
 
         Page<ProductWithLikeCountDto> result = productService.getProducts(null, ProductSortType.LATEST, pageable);
 

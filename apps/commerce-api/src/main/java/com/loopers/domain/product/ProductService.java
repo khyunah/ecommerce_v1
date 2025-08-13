@@ -24,7 +24,7 @@ public class ProductService {
         return productRepository.existsById(id);
     }
 
-    @Cacheable(cacheNames = "products", key = "#brandId+':'+sortType+':'+pageable")
+    @Cacheable(cacheNames = "products", key = "#brandId+':'+#sortType+':'+#pageable")
     public Page<ProductWithLikeCountDto> getProducts(Long brandId, ProductSortType sortType, Pageable pageable) {
         return productRepository.findProductsWithLikeCount(brandId, sortType, pageable);
     }

@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @SpringBootTest
 @Transactional
@@ -37,7 +38,7 @@ public class LikeServiceIntegrationTest {
         assertThat(result).isTrue();
     }
 
-    @DisplayName("좋아요 등록 요청 시, 멱등성 보장이 되도록 이미 존재하면 아무 작업 없이 true가 반환된다.")
+    @DisplayName("좋아요 등록 요청 시, 멱등성 보장이 되도록 이미 존재하면 IllegalArgumentException 에러가 반환된다.")
     @Test
     void returnTrue_whenLikeAlreadyExists() {
         // given
@@ -45,10 +46,12 @@ public class LikeServiceIntegrationTest {
         likeRepository.save(like);
 
         // when
-        boolean result = likeSpyService.create(like);
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
+            likeSpyService.create(like);
+        });
 
         // then
-        assertThat(result).isTrue();
+        assertThat(exception.getMessage()).isEqualTo("좋아요는 하나의 상품에 하나만 가능합니다.");
     }
 
 }

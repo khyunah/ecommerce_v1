@@ -78,11 +78,15 @@ class ProductV1ApiE2ETest {
         // 좋아요 데이터 설정 (product3이 가장 많은 좋아요)
         // product3: 3개의 좋아요
         likeJpaRepository.save(Like.from(testUser1.getId(), product3.getId()));
+        Product.increaseLikeCount(product3);
         likeJpaRepository.save(Like.from(testUser2.getId(), product3.getId()));
+        Product.increaseLikeCount(product3);
         likeJpaRepository.save(Like.from(testUser3.getId(), product3.getId()));
+        Product.increaseLikeCount(product3);
 
         // product1: 1개의 좋아요
         likeJpaRepository.save(Like.from(testUser1.getId(), product1.getId()));
+        Product.increaseLikeCount(product1);
 
         // product2: 좋아요 없음
     }
