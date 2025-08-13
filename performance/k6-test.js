@@ -18,7 +18,7 @@ export default function () {
     };
 
     // 제품 페이징 조회 테스트
-    let response = http.get(`${baseUrl}/api/v1/products?page=0&size=10&sortType=LATEST`, { headers });
+    let response = http.get(`${baseUrl}/api/v1/products?page=0&size=10&sortType=LIKE_COUNT`, { headers });
 
     check(response, {
         'status is 200': (r) => r.status === 200
