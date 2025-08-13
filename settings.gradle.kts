@@ -3,6 +3,7 @@ rootProject.name = "khyunah-ecommerce-v1"
 include(
     ":apps:commerce-api",
     ":modules:jpa",
+    ":modules:redis",
     ":supports:jackson",
     ":supports:logging",
     ":supports:monitoring",
