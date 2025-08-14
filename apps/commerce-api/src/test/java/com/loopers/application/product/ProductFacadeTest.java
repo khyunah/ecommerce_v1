@@ -29,15 +29,13 @@ import static org.mockito.Mockito.*;
 class ProductFacadeTest {
     private ProductService productService;
     private BrandService brandService;
-    private LikeService likeService;
     private ProductFacade productFacade;
 
     @BeforeEach
     void setUp() {
         productService = mock(ProductService.class);
         brandService = mock(BrandService.class);
-        likeService = mock(LikeService.class);
-        productFacade = new ProductFacade(productService, brandService, likeService);
+        productFacade = new ProductFacade(productService, brandService);
     }
 
     @Test
@@ -51,7 +49,7 @@ class ProductFacadeTest {
 
         when(productService.getDetail(productId)).thenReturn(product);
         when(brandService.get(productId)).thenReturn(brand);
-        when(likeService.countLikeByProductId(productId)).thenReturn(likeCount);
+        when(productService.getDetail(productId).getLikeCount()).thenReturn(likeCount);
 
         // when
         ProductDetailInfo result = productFacade.getDetail(productId);
@@ -65,7 +63,6 @@ class ProductFacadeTest {
         // 모든 서비스가 호출되었는지 확인 (Facade의 주요 역할)
         verify(productService).getDetail(productId);
         verify(brandService).get(productId);
-        verify(likeService).countLikeByProductId(productId);
     }
 
     @Test
@@ -93,7 +90,7 @@ class ProductFacadeTest {
 
         // Facade가 ProductService에 올바른 파라미터를 전달했는지 확인
         verify(productService).getProducts(brandId, sortType, pageable);
-        verifyNoInteractions(brandService, likeService); // 다른 서비스는 호출되지 않아야 함
+        verifyNoInteractions(brandService); // 다른 서비스는 호출되지 않아야 함
     }
 
     @Test

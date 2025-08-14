@@ -17,6 +17,8 @@ import org.hibernate.SessionFactory;
 import org.hibernate.StatelessSession;
 import org.hibernate.Transaction;
 import org.instancio.Instancio;
+import org.springframework.cache.CacheManager;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -31,6 +33,13 @@ import static org.instancio.Select.field;
 public class DummyDataInsertService {
 
     private final EntityManagerFactory emf;
+    private final CacheManager cacheManager;
+
+    // 더미데이터 생성 후 캐시 전체 삭제
+    @CacheEvict(value = {"productDetail", "productList"}, allEntries = true)
+    public void clearAllCaches() {
+        // 모든 상품 관련 캐시 삭제
+    }
 
     public void bulkInsertBrands(int count) {
         SessionFactory sessionFactory = emf.unwrap(SessionFactory.class);
@@ -57,6 +66,7 @@ public class DummyDataInsertService {
 
         tx.commit();
         session.close();
+        clearAllCaches();
     }
 
     public void bulkInsertProducts(int count) {
@@ -96,6 +106,7 @@ public class DummyDataInsertService {
 
         tx.commit();
         session.close();
+        clearAllCaches();
     }
 
     public void bulkInsertLikes(int count) {
@@ -123,6 +134,7 @@ public class DummyDataInsertService {
 
         tx.commit();
         session.close();
+        clearAllCaches();
     }
 
     public void bulkInsertUsers(int count) {

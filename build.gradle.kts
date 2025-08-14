@@ -76,6 +76,9 @@ subprojects {
 
         // 스프링 캐시
         implementation ("org.springframework.boot:spring-boot-starter-cache")
+
+        // 캐시 직렬화 문제로 카페인 추가
+        implementation("com.github.ben-manes.caffeine:caffeine")
     }
 
     tasks.withType(Jar::class) { enabled = true }
