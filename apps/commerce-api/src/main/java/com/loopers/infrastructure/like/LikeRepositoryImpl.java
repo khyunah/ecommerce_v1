@@ -100,4 +100,9 @@ public class LikeRepositoryImpl implements LikeRepository {
         return likeJpaRepository.findAllByRefUserIdAndRefProductId(userId1, productId1);
     }
 
+    @Override
+    public void deleteAll() {
+        likeJpaRepository.deleteAll();
+    }
+
 }

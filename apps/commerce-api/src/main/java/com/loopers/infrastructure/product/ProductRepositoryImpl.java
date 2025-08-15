@@ -1,7 +1,6 @@
 package com.loopers.infrastructure.product;
 
 import com.loopers.domain.brand.QBrand;
-import com.loopers.domain.like.QLike;
 import com.loopers.domain.product.Product;
 import com.loopers.domain.product.ProductRepository;
 import com.loopers.domain.product.QProduct;
@@ -77,6 +76,11 @@ public class ProductRepositoryImpl implements ProductRepository {
                 .fetchOne();
 
         return PageableExecutionUtils.getPage(content, pageable, () -> total);
+    }
+
+    @Override
+    public void deleteAll() {
+        productJpaRepository.deleteAll();
     }
 
     private OrderSpecifier<?> getOrderSpecifier(ProductSortType sortType, QProduct product) {

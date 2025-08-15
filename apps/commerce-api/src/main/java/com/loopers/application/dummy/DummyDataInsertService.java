@@ -11,6 +11,7 @@ import com.loopers.domain.user.User;
 import com.loopers.domain.user.vo.Email;
 import com.loopers.domain.user.vo.Gender;
 import com.loopers.domain.user.vo.UserId;
+import com.mysema.commons.lang.Pair;
 import jakarta.persistence.EntityManagerFactory;
 import lombok.RequiredArgsConstructor;
 import org.hibernate.SessionFactory;
@@ -23,6 +24,9 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 
 import static org.instancio.Select.field;
@@ -114,12 +118,26 @@ public class DummyDataInsertService {
         StatelessSession session = sessionFactory.openStatelessSession();
         Transaction tx = session.beginTransaction();
 
-        for (int i = 0; i < count; i++) {
-            int finalI = i;
+        // 모든 가능한 조합 생성
+        List<Pair<Long, Long>> allCombinations = new ArrayList<>();
+        for (long userId = 1; userId < 100; userId++) {
+            for (long productId = 1; productId < 100000; productId++) {
+                allCombinations.add(Pair.of(userId, productId));
+            }
+        }
+
+        // 셔플하여 랜덤 순서로 만들기
+        Collections.shuffle(allCombinations);
+
+        // 필요한 만큼만 가져오기
+        int actualCount = Math.min(count, allCombinations.size());
+
+        for (int i = 0; i < actualCount; i++) {
+            Pair<Long, Long> combination = allCombinations.get(i);
+
             Like like = Instancio.of(Like.class)
-                    .supply(field("refUserId"), () -> ThreadLocalRandom.current().nextLong(1, 100))
-                    .supply(field("refProductId"), () -> ThreadLocalRandom.current().nextLong(1, 100000))
-                    // BaseEntity 필드들을 BaseEntity 클래스를 명시해서 설정
+                    .set(field("refUserId"), combination.getFirst())
+                    .set(field("refProductId"), combination.getSecond())
                     .set(field(BaseEntity.class, "createdAt"), LocalDateTime.now())
                     .set(field(BaseEntity.class, "updatedAt"), LocalDateTime.now())
                     .set(field(BaseEntity.class, "deletedAt"), (LocalDateTime) null)

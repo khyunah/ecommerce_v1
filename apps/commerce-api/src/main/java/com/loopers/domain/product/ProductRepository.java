@@ -12,4 +12,5 @@ public interface ProductRepository {
     boolean existsById(Long id);
     Product save(Product product);
     Page<ProductWithLikeCountDto> findProductsWithLikeCount(Long brandId, ProductSortType sortType, Pageable pageable);
+    void deleteAll();
 }

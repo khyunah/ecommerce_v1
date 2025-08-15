@@ -1,6 +1,5 @@
 package com.loopers.interfaces.api.product;
 
-import com.loopers.CommerceApiApplication;
 import com.loopers.domain.brand.Brand;
 import com.loopers.domain.like.Like;
 import com.loopers.domain.product.Product;
@@ -18,16 +17,19 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
+import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.math.BigDecimal;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@SpringBootTest(classes = CommerceApiApplication.class)
+@SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
 @Transactional
+@Testcontainers
 class ProductV1ApiE2ETest {
 
     @Autowired
@@ -59,9 +61,9 @@ class ProductV1ApiE2ETest {
         testUser1 = User.from("user1", "user1@test.com", "1990-01-01", "M");
         testUser2 = User.from("user2", "user2@test.com", "1991-01-01", "F");
         testUser3 = User.from("user3", "user3@test.com", "1992-01-01", "M");
-        userJpaRepository.save(testUser1);
-        userJpaRepository.save(testUser2);
-        userJpaRepository.save(testUser3);
+        testUser1 = userJpaRepository.save(testUser1);
+        testUser2 = userJpaRepository.save(testUser2);
+        testUser3 = userJpaRepository.save(testUser3);
 
         // 테스트 상품 생성 (생성 시간을 다르게 하기 위해 순서대로, 시간 간격 추가)
         product1 = Product.from("상품1", "설명1", BigDecimal.valueOf(10000), BigDecimal.valueOf(18000), "ON_SALE", testBrand.getId());

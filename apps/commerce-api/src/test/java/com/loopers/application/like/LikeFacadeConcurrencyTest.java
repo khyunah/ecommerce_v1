@@ -17,9 +17,12 @@ import org.springframework.boot.test.context.SpringBootTest;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Random;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -129,33 +132,41 @@ public class LikeFacadeConcurrencyTest {
         assertThat(likes.size()).isLessThanOrEqualTo(threadCount);
     }
 
+
     @DisplayName("동일한 유저가 같은 상품에 동시에 좋아요/좋아요 취소를 수행할 때, 데이터 일관성이 유지된다.")
     @Test
     void should_maintain_data_consistency_when_same_user_likes_and_unlikes_same_product_concurrently() throws InterruptedException {
+        // given
+        int threadCount = 10; // 짝수로 설정
         ExecutorService executorService = Executors.newFixedThreadPool(threadCount);
         CountDownLatch latch = new CountDownLatch(threadCount);
 
-        // 초기 좋아요 생성
-        LikeActionCommand initialLikeCommand = new LikeActionCommand(userId1, productId1);
-        likeFacade.create(initialLikeCommand);
-
+        // 초기 상태: 좋아요 없음
         Product initialProduct = productService.getDetail(productId1);
         Long initialLikeCount = initialProduct.getLikeCount();
 
+        // 성공한 작업들을 추적
+        AtomicInteger successfulCreates = new AtomicInteger(0);
+        AtomicInteger successfulDeletes = new AtomicInteger(0);
+
+        // when: 동시에 좋아요/취소 작업 수행
         for (int i = 0; i < threadCount; i++) {
             final int actionIndex = i;
             executorService.submit(() -> {
                 try {
                     LikeActionCommand command = new LikeActionCommand(userId1, productId1);
 
-                    // 홀수는 좋아요, 짝수는 좋아요 취소
                     if (actionIndex % 2 == 0) {
+                        // 좋아요 생성
                         likeFacade.create(command);
+                        successfulCreates.incrementAndGet();
                     } else {
+                        // 좋아요 취소
                         likeFacade.delete(command);
+                        successfulDeletes.incrementAndGet();
                     }
                 } catch (Exception e) {
-                    // 예외 무시 (중복 좋아요나 이미 삭제된 좋아요 등)
+                    // 예상하지 못한 예외는 로깅
                     e.printStackTrace();
                 } finally {
                     latch.countDown();
@@ -166,23 +177,78 @@ public class LikeFacadeConcurrencyTest {
         latch.await();
         executorService.shutdown();
 
-        // 검증
+        // then: 데이터 일관성 검증
         Product finalProduct = productService.getDetail(productId1);
         List<Like> likes = likeRepository.findAllByUserIdAndProductId(userId1, productId1);
 
-        System.out.println("초기 좋아요 수 = " + initialLikeCount);
-        System.out.println("최종 좋아요 수 = " + finalProduct.getLikeCount());
-        System.out.println("해당 유저의 Like 레코드 수 = " + likes.size());
+        System.out.println("초기 좋아요 수: " + initialLikeCount);
+        System.out.println("최종 좋아요 수: " + finalProduct.getLikeCount());
+        System.out.println("실제 Like 레코드 수: " + likes.size());
+        System.out.println("성공한 생성 작업: " + successfulCreates.get());
+        System.out.println("성공한 삭제 작업: " + successfulDeletes.get());
 
-        // 좋아요 수와 실제 레코드 존재 여부가 일치해야 함
+        // 핵심 검증: 좋아요 수와 실제 레코드가 일치해야 함
         if (likes.isEmpty()) {
-            // 좋아요가 없으면 초기값보다 1 감소해야 함
-            assertThat(finalProduct.getLikeCount()).isEqualTo(initialLikeCount - 1);
-        } else {
-            // 좋아요가 있으면 초기값과 같아야 함
             assertThat(finalProduct.getLikeCount()).isEqualTo(initialLikeCount);
+        } else {
+            assertThat(finalProduct.getLikeCount()).isEqualTo(initialLikeCount + 1);
             assertThat(likes.size()).isEqualTo(1);
         }
+    }
+
+    @DisplayName("동일 유저의 연속적인 좋아요 토글 작업에서 최종 상태가 일관성을 유지한다.")
+    @Test
+    void should_maintain_consistency_with_sequential_like_toggles() throws InterruptedException {
+        // given
+        int operationCount = 100;
+        ExecutorService executorService = Executors.newFixedThreadPool(5);
+        CountDownLatch latch = new CountDownLatch(operationCount);
+
+        Product initialProduct = productService.getDetail(productId1);
+        Long initialLikeCount = initialProduct.getLikeCount();
+
+        AtomicBoolean currentLikeState = new AtomicBoolean(false); // 초기에는 좋아요 없음
+
+        // when: 랜덤하게 좋아요/취소 작업 수행
+        Random random = new Random();
+        for (int i = 0; i < operationCount; i++) {
+            executorService.submit(() -> {
+                try {
+                    LikeActionCommand command = new LikeActionCommand(userId1, productId1);
+
+                    // 50% 확률로 좋아요 또는 취소
+                    if (random.nextBoolean()) {
+                        try {
+                            likeFacade.create(command);
+                        } catch (Exception e) {
+                            // 이미 좋아요가 있는 경우 무시
+                        }
+                    } else {
+                        try {
+                            likeFacade.delete(command);
+                        } catch (Exception e) {
+                            // 좋아요가 없는 경우 무시
+                        }
+                    }
+                } finally {
+                    latch.countDown();
+                }
+            });
+        }
+
+        latch.await();
+        executorService.shutdown();
+
+        // then: 데이터 일관성 검증
+        Product finalProduct = productService.getDetail(productId1);
+        List<Like> likes = likeRepository.findAllByUserIdAndProductId(userId1, productId1);
+
+        // 좋아요 수와 실제 레코드 수가 일치해야 함
+        long expectedLikeCount = initialLikeCount + likes.size();
+        assertThat(finalProduct.getLikeCount()).isEqualTo(expectedLikeCount);
+
+        // 한 유저는 최대 1개의 좋아요만 가질 수 있음
+        assertThat(likes.size()).isLessThanOrEqualTo(1);
     }
 
     @DisplayName("여러 상품에 대해 동시에 좋아요 작업을 수행할 때, 각 상품의 좋아요 수가 정확하게 계산된다.")

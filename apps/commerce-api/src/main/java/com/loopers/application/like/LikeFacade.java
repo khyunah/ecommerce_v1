@@ -25,9 +25,12 @@ public class LikeFacade {
         if(!productService.existsById(command.refProductId())){
             throw new CoreException(ErrorType.NOT_FOUND, "상품 ID가 존재하지 않습니다.");
         }
-        Product product = productService.getDetail(command.refProductId());
-        productService.increaseLikeCount(product);
-        return likeService.create(LikeActionCommand.toDomain(command));
+        boolean result =  likeService.create(LikeActionCommand.toDomain(command));
+        if(result){
+            Product product = productService.getDetail(command.refProductId());
+            productService.increaseLikeCount(product);
+        }
+        return result;
     }
 
     @Transactional
@@ -35,9 +38,12 @@ public class LikeFacade {
         if(!productService.existsById(command.refProductId())){
             throw new CoreException(ErrorType.NOT_FOUND, "상품 ID가 존재하지 않습니다.");
         }
-        Product product = productService.getDetail(command.refProductId());
-        productService.decreaseLikeCount(product);
-        return likeService.delete(LikeActionCommand.toDomain(command));
+        boolean result =  likeService.delete(LikeActionCommand.toDomain(command));
+        if(result){
+            Product product = productService.getDetail(command.refProductId());
+            productService.decreaseLikeCount(product);
+        }
+        return result;
     }
 
     public Page<LikedProductsResult> getLikedProducts(Long userId, Pageable pageable) {
