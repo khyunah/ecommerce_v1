@@ -41,6 +41,22 @@ public class Product extends BaseEntity {
     @Column(nullable = false)
     private Long refBrandId;
 
+    @Column(nullable = false)
+    private Long likeCount = 0L;
+
+    @Version
+    private Long version;
+
+    public Product(String name, String description, Money originalPrice, Money sellingPrice, SaleStatus saleStatus, Long refBrandId) {
+        super();
+        this.name = name;
+        this.description = description;
+        this.originalPrice = originalPrice;
+        this.sellingPrice = sellingPrice;
+        this.saleStatus = saleStatus;
+        this.refBrandId = refBrandId;
+    }
+
     public static Product from(String name, String description, BigDecimal sellingPrice, BigDecimal originalPrice, String saleStatus, Long refBrandId) {
         validateName(name);
         validateOriginalPriceAndSellingPrice(originalPrice,sellingPrice);
@@ -63,6 +79,16 @@ public class Product extends BaseEntity {
     public static void validateOriginalPriceAndSellingPrice(BigDecimal originalPrice, BigDecimal sellingPrice){
         if(originalPrice.compareTo(sellingPrice) < 0){
             throw new CoreException(ErrorType.BAD_REQUEST, "원가보다 할인가가 높을 수 없습니다.");
+        }
+    }
+
+    public static void increaseLikeCount(Product product){
+        product.likeCount++;
+    }
+
+    public static void decreaseLikeCount(Product product){
+        if(product.likeCount > 0){
+            product.likeCount--;
         }
     }
 }

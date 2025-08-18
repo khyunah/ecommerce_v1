@@ -70,6 +70,15 @@ subprojects {
         // Test Lombok
         testCompileOnly("org.projectlombok:lombok")
         testAnnotationProcessor("org.projectlombok:lombok")
+
+        // instancio 더미데이터 API
+        implementation ("org.instancio:instancio-core:2.0.0")
+
+        // 스프링 캐시
+        implementation ("org.springframework.boot:spring-boot-starter-cache")
+
+        // 캐시 직렬화 문제로 카페인 추가
+        implementation("com.github.ben-manes.caffeine:caffeine")
     }
 
     tasks.withType(Jar::class) { enabled = true }

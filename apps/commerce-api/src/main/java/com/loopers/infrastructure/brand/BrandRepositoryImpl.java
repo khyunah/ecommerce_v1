@@ -16,4 +16,14 @@ public class BrandRepositoryImpl implements BrandRepository {
     public Optional<Brand> findById(Long brandId) {
         return brandJpaRepository.findById(brandId);
     }
+
+    @Override
+    public Brand save(Brand brand) {
+        return brandJpaRepository.save(brand);
+    }
+
+    @Override
+    public void deleteAll() {
+        brandJpaRepository.deleteAll();
+    }
 }

@@ -37,7 +37,7 @@ public class LikeRepositoryImpl implements LikeRepository {
     }
 
     @Override
-    public boolean delete(Long refUserId, Long refProductId) {
+    public int delete(Long refUserId, Long refProductId) {
         return likeJpaRepository.deleteByRefUserIdAndRefProductId(refUserId, refProductId);
     }
 
@@ -88,6 +88,21 @@ public class LikeRepositoryImpl implements LikeRepository {
                 .from(like)
                 .where(like.refProductId.eq(productId))
                 .fetchOne();
+    }
+
+    @Override
+    public List<Like> findAllByProductId(Long productId1) {
+        return likeJpaRepository.findAllByRefProductId(productId1);
+    }
+
+    @Override
+    public List<Like> findAllByUserIdAndProductId(Long userId1, Long productId1) {
+        return likeJpaRepository.findAllByRefUserIdAndRefProductId(userId1, productId1);
+    }
+
+    @Override
+    public void deleteAll() {
+        likeJpaRepository.deleteAll();
     }
 
 }

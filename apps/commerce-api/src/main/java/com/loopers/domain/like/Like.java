@@ -3,9 +3,7 @@ package com.loopers.domain.like;
 import com.loopers.domain.BaseEntity;
 import com.loopers.support.error.CoreException;
 import com.loopers.support.error.ErrorType;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -14,13 +12,24 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter
-@Table(name = "`like`")
+@Table(name = "`like`",
+        uniqueConstraints = @UniqueConstraint(
+        columnNames = {"ref_user_id", "ref_product_id"}
+))
 public class Like extends BaseEntity {
 
     @Column(nullable = false)
     private Long refUserId;
     @Column(nullable = false)
     private Long refProductId;
+    @Version
+    private Long version;
+
+    public Like(Long refUserId, Long refProductId) {
+        super();
+        this.refUserId = refUserId;
+        this.refProductId = refProductId;
+    }
 
     public static Like from(Long refUserId, Long refProductId) {
         validateRefUserId(refUserId);

@@ -115,7 +115,7 @@ class OrderV1E2ETest {
             List<OrderV1Dto.OrderItemRequest> items = List.of(new OrderV1Dto.OrderItemRequest(productId1, 1));
             OrderV1Dto.OrderCreateRequest request = new OrderV1Dto.OrderCreateRequest(
                     items,
-                    "ORDER-SEQ-123",
+                    "ORDER-SEQ-1234",
                     -1L
             );
 

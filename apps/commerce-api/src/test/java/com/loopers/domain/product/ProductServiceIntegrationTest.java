@@ -47,6 +47,7 @@ public class ProductServiceIntegrationTest {
         // then
         assertThat(foundedProduct.getName()).isEqualTo("상품명");
         assertThat(foundedProduct.getSellingPrice().getValue().longValue()).isEqualTo(9000L);
+        assertThat(foundedProduct.getLikeCount()).isEqualTo(0L);
     }
 
     @DisplayName("상품 ID가 존재하지 않을 경우, NOT_FOUND 예외가 발생한다.")
@@ -71,10 +72,10 @@ public class ProductServiceIntegrationTest {
         // given
         Long id = 1L;
         Product product = Product.from("상품", "설명", new BigDecimal("9000"), new BigDecimal("10000"), "ON_SALE", 1L);
-        productRepository.save(product);
+        product = productRepository.save(product);
 
         // when
-        boolean exists = productSpyService.existsById(id);
+        boolean exists = productSpyService.existsById(product.getId());
 
         // then
         assertThat(exists).isTrue();
