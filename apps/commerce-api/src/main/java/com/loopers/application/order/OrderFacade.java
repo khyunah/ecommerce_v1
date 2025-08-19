@@ -8,6 +8,9 @@ import com.loopers.application.order.out.OrderResult;
 import com.loopers.domain.coupon.Coupon;
 import com.loopers.domain.coupon.CouponService;
 import com.loopers.domain.order.*;
+import com.loopers.domain.payment.Payment;
+import com.loopers.domain.payment.PaymentMethod;
+import com.loopers.domain.payment.PaymentService;
 import com.loopers.domain.point.Point;
 import com.loopers.domain.point.PointService;
 import com.loopers.domain.product.Product;
@@ -36,6 +39,7 @@ public class OrderFacade {
     private final ProductService productService;
     private final OrderService orderService;
     private final CouponService couponService;
+    private final PaymentService paymentService;
 
     @Transactional
     public OrderCreateResult placeOrder(OrderCreateCommand command) {
@@ -95,6 +99,29 @@ public class OrderFacade {
             }
             order = orderService.save(order);
             System.out.println("order 확인: " + order.getOrderStatus());
+
+            // 결제 처리
+            Long finalAmount = order.getFinalAmount();
+            Payment payment = null;
+            if (finalAmount > 0) {
+                // PG사 결제가 필요한 경우 Payment 생성
+                payment = paymentService.createPayment(
+                        order.getId(),
+                        command.paymentMethod(), // OrderCreateCommand에 추가 필요
+                        finalAmount,
+                        command.pgProvider()     // OrderCreateCommand에 추가 필요
+                );
+                System.out.println("payment 생성: " + payment.getPaymentSeq());
+
+                // 현재는 Payment만 생성하고 실제 PG사 결제는 별도 API로 처리
+                // 추후 PG사 연동 시 여기서 즉시 결제 처리 가능
+
+            } else {
+                // 포인트로만 결제하는 경우 바로 주문 완료
+                order.completePayment();
+                order = orderService.save(order);
+                System.out.println("포인트 결제 완료: " + order.getOrderStatus());
+            }
 
         } catch (Exception e){
             e.printStackTrace();

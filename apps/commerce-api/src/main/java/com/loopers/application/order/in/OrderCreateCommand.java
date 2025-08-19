@@ -7,6 +7,8 @@ public record OrderCreateCommand(
         List<OrderItemCriteria> items,
         String orderSeq,
         Long couponId,
-        Long usedPoint
+        Long usedPoint,
+        String paymentMethod,
+        String pgProvider
 ) {
 }
