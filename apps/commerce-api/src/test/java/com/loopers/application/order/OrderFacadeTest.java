@@ -72,7 +72,8 @@ class OrderFacadeTest {
                 user.getId(),
                 items,
                 "ORDER-123",
-                -1L
+                -1L,
+                100L
         );
 
         OrderCreateResult result = orderFacade.placeOrder(command);

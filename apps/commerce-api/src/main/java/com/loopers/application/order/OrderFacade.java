@@ -43,7 +43,8 @@ public class OrderFacade {
         // 사용자 정보
         User user = userService.get(command.userId());
         Order order = null;
-        long totalPrice = 0L;
+        Long totalPrice = 0L;
+        Long usedPoint = command.usedPoint();
 
         try {
             // 재고처리
@@ -72,19 +73,26 @@ public class OrderFacade {
             }
 
             // 쿠폰 적용
+            Coupon coupon = null;
+            Long discountAmount = 0L;
             if(command.couponId() > -1){
-                Coupon coupon = couponService.get(command.couponId(), command.userId());
+                coupon = couponService.get(command.couponId(), command.userId());
                 coupon.useCoupon();
+                discountAmount = coupon.applyCoupon(coupon, totalPrice);
             }
 
             // 포인트 차감
             Point point = pointService.getByRefUserIdWithLock(command.userId());
             System.out.println("point 확인: " + point.getRefUserId());
-            Point.minus(point, totalPrice);
+            Point.minus(point, usedPoint);
             pointService.save(point);
 
             // 주문 생성
-            order = Order.create(user.getId(), command.orderSeq(), orderItems);
+            order = Order.create(user.getId(), command.orderSeq(), orderItems, totalPrice);
+            order.applyPoint(usedPoint);
+            if(coupon != null){
+                order.applyCoupon(coupon.getId(), discountAmount);
+            }
             order = orderService.save(order);
             System.out.println("order 확인: " + order.getOrderStatus());
 

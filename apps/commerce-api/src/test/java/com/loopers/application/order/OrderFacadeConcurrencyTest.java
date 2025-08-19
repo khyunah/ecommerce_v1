@@ -117,7 +117,7 @@ public class OrderFacadeConcurrencyTest {
         stockId2 = stock2.getId();
 
         // 쿠폰 저장
-        Coupon coupon = Coupon.from(userId1,"정액할인쿠폰", CouponType.PRICE.name(), 5000L, 0);
+        Coupon coupon = Coupon.from(userId1,"정액할인쿠폰", CouponType.PRICE.name(), 5000L);
         coupon = couponRepository.save(coupon);
         couponId1 = coupon.getId();
     }
@@ -136,7 +136,8 @@ public class OrderFacadeConcurrencyTest {
                             userId1,
                             items,
                             "ORDER-SEQ-" + Thread.currentThread().getId(),
-                            -1L
+                            -1L,
+                            1000L
                     );
                     orderFacade.placeOrder(command);
                 } catch (Exception e) {
@@ -179,7 +180,8 @@ public class OrderFacadeConcurrencyTest {
                             userId1,
                             items,
                             "ORDER-SEQ-" + Thread.currentThread().getId(),
-                            -1L
+                            -1L,
+                            10000L
                     );
                     orderFacade.placeOrder(command);
                 } catch (Exception e) {
@@ -234,7 +236,8 @@ public class OrderFacadeConcurrencyTest {
                             userId,
                             items,
                             "ORDER-SEQ-" + Thread.currentThread().getId(),
-                            -1L
+                            -1L,
+                            1000L
                     );
                     orderFacade.placeOrder(command);
                 } catch (Exception e) {
@@ -283,7 +286,8 @@ public class OrderFacadeConcurrencyTest {
                             userId1,
                             items,
                             "ORDER-SEQ-" + Thread.currentThread().getId(),
-                            -1L
+                            -1L,
+                            1000L
                     );
                     orderFacade.placeOrder(command);
                 } catch (Exception e) {
@@ -308,7 +312,7 @@ public class OrderFacadeConcurrencyTest {
         System.out.println("user1 성공한 주문 수 = " + orders1.size());
 
         assertThat(stock.getQuantity()).isEqualTo(0);
-        assertThat(point1.getBalance().getValue()).isEqualTo(10000);
+        assertThat(point1.getBalance().getValue()).isEqualTo(15000);
         assertThat(orders1.size()).isLessThanOrEqualTo(5); // 일부는 실패 가능
     }
 
@@ -326,7 +330,8 @@ public class OrderFacadeConcurrencyTest {
                             userId1,
                             items,
                             "ORDER-SEQ-" + Thread.currentThread().getId(),
-                            couponId1
+                            couponId1,
+                            1000L
                     );
                     orderFacade.placeOrder(command);
                 } catch (Exception e) {

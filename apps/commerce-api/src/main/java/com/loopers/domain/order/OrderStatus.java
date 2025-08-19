@@ -6,17 +6,14 @@ import com.loopers.support.error.ErrorType;
 import java.util.Arrays;
 
 public enum OrderStatus {
-    ORDERED,        // 주문 완료 (고객이 주문을 완료한 상태)
+    PENDING,        // 결제 대기 (주문 생성 후 결제 전)
     PAID,           // 결제 완료
-    PACKING,        // 상품 준비 중 (포장, 출고 준비)
-    SHIPPED,        // 배송 중
-    DELIVERED,      // 배송 완료 (고객에게 상품 전달됨)
-    CANCELLED,      // 주문 취소됨
-    RETURN_REQUESTED, // 반품 요청됨
-    RETURNED,       // 반품 완료
-    EXCHANGE_REQUESTED, // 교환 요청됨
-    EXCHANGED,      // 교환 완료
-    FAILED;          // 결제 실패 또는 주문 실패
+    PREPARING,      // 상품 준비중
+    SHIPPED,        // 배송중
+    DELIVERED,      // 배송 완료
+    CANCELED,       // 주문 취소
+    REFUND_REQUESTED, // 환불 요청
+    REFUNDED;        // 환불 완료
 
     public static OrderStatus from(String value) {
         validate(value);

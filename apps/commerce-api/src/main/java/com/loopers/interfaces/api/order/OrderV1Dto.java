@@ -16,14 +16,16 @@ public class OrderV1Dto {
     public record OrderCreateRequest(
             List<OrderItemRequest> items,
             String orderSeq,
-            Long couponId
+            Long couponId,
+            Long usedPoint
     ){
         public static OrderCreateCommand toOrderCreateCommand(Long userId, OrderCreateRequest request){
             return new OrderCreateCommand(
                     userId,
                     OrderItemRequest.toOrderItemList(request.items),
                     request.orderSeq(),
-                    request.couponId
+                    request.couponId,
+                    request.usedPoint()
             );
         }
     }

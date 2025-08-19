@@ -99,7 +99,7 @@ class OrderV1E2ETest {
         stockId1 = stock.getId();
 
         // 쿠폰 저장
-        Coupon coupon = Coupon.from(userId1,"정액할인쿠폰", CouponType.PRICE.name(), 5000L, 0);
+        Coupon coupon = Coupon.from(userId1,"정액할인쿠폰", CouponType.PRICE.name(), 5000L);
         coupon = couponRepository.save(coupon);
         couponId1 = coupon.getId();
     }
@@ -116,7 +116,8 @@ class OrderV1E2ETest {
             OrderV1Dto.OrderCreateRequest request = new OrderV1Dto.OrderCreateRequest(
                     items,
                     "ORDER-SEQ-1234",
-                    -1L
+                    -1L,
+                    1000L
             );
 
             // when & then
@@ -136,7 +137,8 @@ class OrderV1E2ETest {
             OrderV1Dto.OrderCreateRequest request = new OrderV1Dto.OrderCreateRequest(
                     items,
                     "ORDER-SEQ-123",
-                    -1L
+                    -1L,
+                    1000L
             );
 
             // when & then
@@ -161,7 +163,8 @@ class OrderV1E2ETest {
                     userId1,
                     items,
                     "ORDER-SEQ-1234",
-                    -1L
+                    -1L,
+                    1000L
             );
             orderFacade.placeOrder(command);
 
@@ -187,7 +190,8 @@ class OrderV1E2ETest {
             OrderV1Dto.OrderCreateRequest request = new OrderV1Dto.OrderCreateRequest(
                     items,
                     "ORDER-SEQ-123",
-                    -1L
+                    -1L,
+                    1000L
             );
 
             // when & then
@@ -208,7 +212,7 @@ class OrderV1E2ETest {
         void returnsOrderDetail_whenExistingUserRequestsIt() throws Exception {
             // given
             List<OrderItem> items = List.of(new OrderItem(1L,1,"티셔츠", Money.from(BigDecimal.valueOf(1000)),Money.from(BigDecimal.valueOf(1200))));
-            Order order = orderRepository.save(Order.create(userId1,"seq1123", items));
+            Order order = orderRepository.save(Order.create(userId1,"seq1123", items, 1000L));
 
 
             // when & then
@@ -230,7 +234,8 @@ class OrderV1E2ETest {
             OrderV1Dto.OrderCreateRequest request = new OrderV1Dto.OrderCreateRequest(
                     items,
                     "ORDER-SEQ-123",
-                    -1L
+                    -1L,
+                    1000L
             );
 
             // when & then

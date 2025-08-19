@@ -6,6 +6,7 @@ public record OrderCreateCommand(
         Long userId,
         List<OrderItemCriteria> items,
         String orderSeq,
-        Long couponId
+        Long couponId,
+        Long usedPoint
 ) {
 }
