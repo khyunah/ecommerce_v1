@@ -117,7 +117,9 @@ class OrderV1E2ETest {
                     items,
                     "ORDER-SEQ-1234",
                     -1L,
-                    1000L
+                    1000L,
+                    "POINT_ONLY",
+                    "KHY_PG"
             );
 
             // when & then
@@ -138,7 +140,9 @@ class OrderV1E2ETest {
                     items,
                     "ORDER-SEQ-123",
                     -1L,
-                    1000L
+                    1000L,
+                    "POINT_ONLY",
+                    "KHY_PG"
             );
 
             // when & then
@@ -164,7 +168,9 @@ class OrderV1E2ETest {
                     items,
                     "ORDER-SEQ-1234",
                     -1L,
-                    1000L
+                    1000L,
+                    "POINT_ONLY",
+                    "KHY_PG"
             );
             orderFacade.placeOrder(command);
 
@@ -191,7 +197,9 @@ class OrderV1E2ETest {
                     items,
                     "ORDER-SEQ-123",
                     -1L,
-                    1000L
+                    1000L,
+                    "POINT_ONLY",
+                    "KHY_PG"
             );
 
             // when & then
@@ -235,7 +243,9 @@ class OrderV1E2ETest {
                     items,
                     "ORDER-SEQ-123",
                     -1L,
-                    1000L
+                    1000L,
+                    "POINT_ONLY",
+                    "KHY_PG"
             );
 
             // when & then

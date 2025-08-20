@@ -7,11 +7,6 @@ import java.util.Arrays;
 
 public enum PaymentMethod {
     CARD,           // 카드
-    BANK_TRANSFER,  // 계좌이체
-    VIRTUAL_ACCOUNT, // 가상계좌
-    KAKAO_PAY,      // 카카오페이
-    NAVER_PAY,      // 네이버페이
-    PAYCO,          // 페이코
     POINT_ONLY;      // 포인트만 사용 (PG사 결제 없음)
 
     public static PaymentMethod from(String value) {
@@ -30,6 +25,13 @@ public enum PaymentMethod {
                 throw new CoreException(ErrorType.BAD_REQUEST, "결제수단값이 올바르지 않습니다.");
             }
         }
+    }
 
+    /**
+     * PG사 연결이 필요한 결제 방법인지 판단
+     * 현재는 CARD만 PG사 연결이 필요함
+     */
+    public boolean requiresPgConnection() {
+        return this == CARD;
     }
 }

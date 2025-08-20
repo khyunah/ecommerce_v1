@@ -1,10 +1,8 @@
 package com.loopers.domain.payment;
 
-import com.loopers.domain.order.Order;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
-import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
 

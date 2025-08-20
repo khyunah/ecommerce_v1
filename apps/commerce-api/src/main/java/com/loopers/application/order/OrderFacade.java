@@ -103,27 +103,34 @@ public class OrderFacade {
             // 결제 처리
             Long finalAmount = order.getFinalAmount();
             Payment payment = null;
-            if (finalAmount > 0) {
-                // PG사 결제가 필요한 경우 Payment 생성
-                payment = paymentService.createPayment(
-                        order.getId(),
-                        command.paymentMethod(), // OrderCreateCommand에 추가 필요
-                        finalAmount,
-                        command.pgProvider()     // OrderCreateCommand에 추가 필요
-                );
-                System.out.println("payment 생성: " + payment.getPaymentSeq());
+            
+            // 항상 결제 생성 (금액이 0원이어도)
+            payment = paymentService.createPayment(
+                    order.getId(),
+                    command.paymentMethod(),
+                    finalAmount,
+                    command.pgProvider()
+            );
+            System.out.println("payment 생성: " + payment.getPaymentSeq());
 
-                // 현재는 Payment만 생성하고 실제 PG사 결제는 별도 API로 처리
+            PaymentMethod paymentMethod = PaymentMethod.from(command.paymentMethod());
+            
+            // CARD 결제 방법이고 금액이 0보다 클 때만 PG사 연결
+            if (paymentMethod.requiresPgConnection() && finalAmount > 0) {
+                // PG사 결제가 필요한 경우 - 실제 PG사 결제는 별도 API로 처리
                 // 추후 PG사 연동 시 여기서 즉시 결제 처리 가능
-
+                System.out.println("PG사 연결 필요 - 카드 결제: " + finalAmount);
             } else {
-                // 포인트로만 결제하는 경우 바로 주문 완료
+                // CARD가 아니거나 금액이 0원인 경우 바로 주문 완료
                 order.completePayment();
                 order = orderService.save(order);
-                System.out.println("포인트 결제 완료: " + order.getOrderStatus());
+                System.out.println("결제 완료 (PG사 연결 없음): " + order.getOrderStatus());
             }
 
         } catch (Exception e){
+            e.printStackTrace();
+            System.out.println("OrderFacade placeOrder 에러: " + e.getMessage());
+            System.out.println("OrderFacade placeOrder 스택 트레이스:");
             e.printStackTrace();
             throw new CoreException(ErrorType.BAD_REQUEST, "주문 중 에러가 발생했습니다. 다시 시도해주세요.");
         }

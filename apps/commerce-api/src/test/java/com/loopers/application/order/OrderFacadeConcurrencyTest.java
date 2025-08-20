@@ -137,7 +137,9 @@ public class OrderFacadeConcurrencyTest {
                             items,
                             "ORDER-SEQ-" + Thread.currentThread().getId(),
                             -1L,
-                            1000L
+                            1000L,
+                            "POINT_ONLY",
+                            "KHY_PG"
                     );
                     orderFacade.placeOrder(command);
                 } catch (Exception e) {
@@ -181,7 +183,9 @@ public class OrderFacadeConcurrencyTest {
                             items,
                             "ORDER-SEQ-" + Thread.currentThread().getId(),
                             -1L,
-                            10000L
+                            10000L,
+                            "POINT_ONLY",
+                            "KHY_PG"
                     );
                     orderFacade.placeOrder(command);
                 } catch (Exception e) {
@@ -237,7 +241,9 @@ public class OrderFacadeConcurrencyTest {
                             items,
                             "ORDER-SEQ-" + Thread.currentThread().getId(),
                             -1L,
-                            1000L
+                            1000L,
+                            "POINT_ONLY",
+                            "KHY_PG"
                     );
                     orderFacade.placeOrder(command);
                 } catch (Exception e) {
@@ -287,7 +293,9 @@ public class OrderFacadeConcurrencyTest {
                             items,
                             "ORDER-SEQ-" + Thread.currentThread().getId(),
                             -1L,
-                            1000L
+                            1000L,
+                            "POINT_ONLY",
+                            "KHY_PG"
                     );
                     orderFacade.placeOrder(command);
                 } catch (Exception e) {
@@ -331,7 +339,9 @@ public class OrderFacadeConcurrencyTest {
                             items,
                             "ORDER-SEQ-" + Thread.currentThread().getId(),
                             couponId1,
-                            1000L
+                            1000L,
+                            "POINT_ONLY",
+                            "KHY_PG"
                     );
                     orderFacade.placeOrder(command);
                 } catch (Exception e) {

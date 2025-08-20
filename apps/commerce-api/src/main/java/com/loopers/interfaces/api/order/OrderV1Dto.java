@@ -17,7 +17,9 @@ public class OrderV1Dto {
             List<OrderItemRequest> items,
             String orderSeq,
             Long couponId,
-            Long usedPoint
+            Long usedPoint,
+            String paymentMethod,
+            String pgProvider
     ){
         public static OrderCreateCommand toOrderCreateCommand(Long userId, OrderCreateRequest request){
             return new OrderCreateCommand(
@@ -25,7 +27,9 @@ public class OrderV1Dto {
                     OrderItemRequest.toOrderItemList(request.items),
                     request.orderSeq(),
                     request.couponId,
-                    request.usedPoint()
+                    request.usedPoint(),
+                    request.paymentMethod(),
+                    request.pgProvider()
             );
         }
     }
