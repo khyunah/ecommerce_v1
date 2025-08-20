@@ -27,7 +27,7 @@ public class PaymentRepositoryImpl implements PaymentRepository {
 
     @Override
     public Optional<Payment> findByPgTid(String pgTid) {
-        return paymentJpaRepository.findByPgTid(pgTid);
+        return paymentJpaRepository.findByPgTransactionKey(pgTid);
     }
 
     @Override

@@ -139,7 +139,9 @@ public class OrderFacadeConcurrencyTest {
                             -1L,
                             1000L,
                             "POINT_ONLY",
-                            "KHY_PG"
+                            "KHY_PG",
+                            null,
+                            null
                     );
                     orderFacade.placeOrder(command);
                 } catch (Exception e) {
@@ -185,7 +187,9 @@ public class OrderFacadeConcurrencyTest {
                             -1L,
                             10000L,
                             "POINT_ONLY",
-                            "KHY_PG"
+                            "KHY_PG",
+                            null,
+                            null
                     );
                     orderFacade.placeOrder(command);
                 } catch (Exception e) {
@@ -243,7 +247,9 @@ public class OrderFacadeConcurrencyTest {
                             -1L,
                             1000L,
                             "POINT_ONLY",
-                            "KHY_PG"
+                            "KHY_PG",
+                            null,
+                            null
                     );
                     orderFacade.placeOrder(command);
                 } catch (Exception e) {
@@ -295,7 +301,9 @@ public class OrderFacadeConcurrencyTest {
                             -1L,
                             1000L,
                             "POINT_ONLY",
-                            "KHY_PG"
+                            "KHY_PG",
+                            null,
+                            null
                     );
                     orderFacade.placeOrder(command);
                 } catch (Exception e) {
@@ -341,7 +349,9 @@ public class OrderFacadeConcurrencyTest {
                             couponId1,
                             1000L,
                             "POINT_ONLY",
-                            "KHY_PG"
+                            "KHY_PG",
+                            null,
+                            null
                     );
                     orderFacade.placeOrder(command);
                 } catch (Exception e) {

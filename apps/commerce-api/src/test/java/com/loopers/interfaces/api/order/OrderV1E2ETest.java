@@ -119,7 +119,9 @@ class OrderV1E2ETest {
                     -1L,
                     1000L,
                     "POINT_ONLY",
-                    "KHY_PG"
+                    "KHY_PG",
+                    null,
+                    null
             );
 
             // when & then
@@ -142,7 +144,9 @@ class OrderV1E2ETest {
                     -1L,
                     1000L,
                     "POINT_ONLY",
-                    "KHY_PG"
+                    "KHY_PG",
+                    null,
+                    null
             );
 
             // when & then
@@ -170,7 +174,9 @@ class OrderV1E2ETest {
                     -1L,
                     1000L,
                     "POINT_ONLY",
-                    "KHY_PG"
+                    "KHY_PG",
+                    null,
+                    null
             );
             orderFacade.placeOrder(command);
 
@@ -199,7 +205,9 @@ class OrderV1E2ETest {
                     -1L,
                     1000L,
                     "POINT_ONLY",
-                    "KHY_PG"
+                    "KHY_PG",
+                    null,
+                    null
             );
 
             // when & then
@@ -245,7 +253,9 @@ class OrderV1E2ETest {
                     -1L,
                     1000L,
                     "POINT_ONLY",
-                    "KHY_PG"
+                    "KHY_PG",
+                    null,
+                    null
             );
 
             // when & then

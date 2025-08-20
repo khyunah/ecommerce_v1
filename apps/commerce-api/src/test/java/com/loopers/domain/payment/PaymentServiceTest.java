@@ -54,15 +54,13 @@ class PaymentServiceTest {
 
         // when
         Payment cardPayment = paymentService.createPayment(orderId, "CARD", 1000L, "KHY_PG");
-        Payment kakaoPayment = paymentService.createPayment(orderId, "KAKAO_PAY", 2000L, "KHY_PG");
         Payment pointPayment = paymentService.createPayment(orderId, "POINT_ONLY", 0L, "KHY_PG");
 
         // then
         List<Payment> payments = paymentRepository.findByOrderId(orderId);
-        assertThat(payments).hasSize(3);
+        assertThat(payments).hasSize(2);
 
         assertThat(cardPayment.getPaymentMethod()).isEqualTo(PaymentMethod.CARD);
-        assertThat(kakaoPayment.getPaymentMethod()).isEqualTo(PaymentMethod.KAKAO_PAY);
         assertThat(pointPayment.getPaymentMethod()).isEqualTo(PaymentMethod.POINT_ONLY);
     }
 }

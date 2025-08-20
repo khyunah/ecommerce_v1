@@ -14,6 +14,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.dao.DataIntegrityViolationException;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -107,6 +108,9 @@ public class LikeFacadeConcurrencyTest {
                     Long currentUserId = (userIndex % 2 == 0) ? userId1 : userId2;
                     LikeActionCommand command = new LikeActionCommand(currentUserId, productId1);
                     likeFacade.create(command);
+                } catch (DataIntegrityViolationException e) {
+                    // 중복 삽입 시도는 무시 (동시성 테스트에서 예상되는 상황)
+                    System.out.println("중복 좋아요 시도 감지: " + e.getMessage());
                 } catch (Exception e) {
                     // 예외 무시 (중복 좋아요 등으로 인한 충돌 가능)
                     e.printStackTrace();

@@ -117,9 +117,48 @@ public class OrderFacade {
             
             // CARD 결제 방법이고 금액이 0보다 클 때만 PG사 연결
             if (paymentMethod.requiresPgConnection() && finalAmount > 0) {
-                // PG사 결제가 필요한 경우 - 실제 PG사 결제는 별도 API로 처리
-                // 추후 PG사 연동 시 여기서 즉시 결제 처리 가능
-                System.out.println("PG사 연결 필요 - 카드 결제: " + finalAmount);
+                // PG사 결제 요청
+                try {
+                    var pgResponse = paymentService.requestPgPayment(
+                            payment, 
+                            command.cardType(), 
+                            command.cardNo()
+                    );
+                    
+                    if (pgResponse.isSuccess()) {
+                        // PG 요청 성공 - transactionKey 저장
+                        paymentService.updateTransactionKey(payment.getPaymentSeq(), pgResponse.getTransactionKey());
+                        System.out.println("PG 요청 성공, transactionKey: " + pgResponse.getTransactionKey());
+                        
+                        // 주문 상태는 PENDING으로 유지 (실제 결제 완료는 콜백에서 처리)
+                        // order 상태는 이미 PENDING이므로 별도 처리 불필요
+                        
+                    } else {
+                        // PG 요청 실패 - errorCode에 따라 다르게 처리
+                        String errorCode = pgResponse.meta().errorCode();
+                        String errorMessage = pgResponse.getErrorMessage();
+                        
+                        paymentService.failPayment(payment.getPaymentSeq(), errorMessage);
+                        
+                        if ("Bad Request".equals(errorCode)) {
+                            // 클라이언트 요청 오류 (400번대)
+                            throw new CoreException(ErrorType.BAD_REQUEST, errorMessage);
+                        } else if ("Internal Server Error".equals(errorCode)) {
+                            // PG사 서버 오류 (500번대) - 재시도 가능한 오류로 처리
+                            throw new CoreException(ErrorType.INTERNAL_ERROR, errorMessage);
+                        } else {
+                            // 기타 오류
+                            throw new CoreException(ErrorType.BAD_REQUEST, "결제 요청에 실패했습니다: " + errorMessage);
+                        }
+                    }
+                } catch (CoreException e) {
+                    // CoreException은 그대로 재전파
+                    throw e;
+                } catch (Exception e) {
+                    // 네트워크 오류 등 예상치 못한 예외
+                    paymentService.failPayment(payment.getPaymentSeq(), e.getMessage());
+                    throw new CoreException(ErrorType.INTERNAL_ERROR, "결제 처리 중 시스템 오류가 발생했습니다. 잠시 후 다시 시도해주세요.");
+                }
             } else {
                 // CARD가 아니거나 금액이 0원인 경우 바로 주문 완료
                 order.completePayment();

@@ -19,7 +19,9 @@ public class OrderV1Dto {
             Long couponId,
             Long usedPoint,
             String paymentMethod,
-            String pgProvider
+            String pgProvider,
+            String cardType,
+            String cardNo
     ){
         public static OrderCreateCommand toOrderCreateCommand(Long userId, OrderCreateRequest request){
             return new OrderCreateCommand(
@@ -29,7 +31,9 @@ public class OrderV1Dto {
                     request.couponId,
                     request.usedPoint(),
                     request.paymentMethod(),
-                    request.pgProvider()
+                    request.pgProvider(),
+                    request.cardType(),
+                    request.cardNo()
             );
         }
     }

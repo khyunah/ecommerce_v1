@@ -9,6 +9,8 @@ public record OrderCreateCommand(
         Long couponId,
         Long usedPoint,
         String paymentMethod,
-        String pgProvider
+        String pgProvider,
+        String cardType,    // 카드 타입 (SAMSUNG, HYUNDAI, etc.)
+        String cardNo       // 카드 번호
 ) {
 }

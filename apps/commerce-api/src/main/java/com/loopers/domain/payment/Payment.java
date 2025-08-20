@@ -19,7 +19,7 @@ public class Payment extends BaseEntity {
     private Long refOrderId;
 
     @Column(nullable = false, unique = true)
-    private String paymentSeq;              // 결제 고유번호
+    private String paymentSeq;              // 결제 고유번호 (pg사 orderId)
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
@@ -36,7 +36,7 @@ public class Payment extends BaseEntity {
     private String pgProvider;              // PG사
 
     @Column
-    private String pgTid;                   // PG사 거래 ID
+    private String pgTransactionKey;        // PG사 거래 ID (transactionKey)
 
     @Column
     private LocalDateTime paidAt;
@@ -67,10 +67,15 @@ public class Payment extends BaseEntity {
         return payment;
     }
 
+    // PG 요청 성공 시 transactionKey 저장
+    public void setPgTransactionKey(String transactionKey) {
+        this.pgTransactionKey = transactionKey;
+    }
+    
     // 결제 성공 처리
     public void completePayment(String pgTid) {
         this.paymentStatus = PaymentStatus.COMPLETED;
-        this.pgTid = pgTid;
+        this.pgTransactionKey = pgTid;
         this.paidAt = LocalDateTime.now();
     }
 

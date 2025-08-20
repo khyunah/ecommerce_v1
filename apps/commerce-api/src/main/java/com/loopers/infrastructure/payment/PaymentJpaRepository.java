@@ -13,7 +13,7 @@ public interface PaymentJpaRepository extends JpaRepository<Payment, Long> {
     Optional<Payment> findByPaymentSeq(String paymentSeq);
 
     // PG사 거래 ID로 조회
-    Optional<Payment> findByPgTid(String pgTid);
+    Optional<Payment> findByPgTransactionKey(String pgTransactionKey);
 
     // 주문 ID로 조회
     List<Payment> findByRefOrderId(Long refOrderId);
