@@ -5,12 +5,14 @@ import com.loopers.application.order.in.OrderItemCriteria;
 import com.loopers.application.order.out.OrderCreateResult;
 import com.loopers.application.order.out.OrderDetailResult;
 import com.loopers.application.order.out.OrderResult;
+import com.loopers.application.payment.PaymentStatusService;
 import com.loopers.domain.coupon.Coupon;
 import com.loopers.domain.coupon.CouponService;
 import com.loopers.domain.order.*;
 import com.loopers.domain.payment.Payment;
 import com.loopers.domain.payment.PaymentMethod;
 import com.loopers.domain.payment.PaymentService;
+import com.loopers.domain.payment.PaymentStatus;
 import com.loopers.domain.point.Point;
 import com.loopers.domain.point.PointService;
 import com.loopers.domain.product.Product;
@@ -22,6 +24,7 @@ import com.loopers.domain.user.UserService;
 import com.loopers.support.error.CoreException;
 import com.loopers.support.error.ErrorType;
 import lombok.RequiredArgsConstructor;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -40,6 +43,7 @@ public class OrderFacade {
     private final OrderService orderService;
     private final CouponService couponService;
     private final PaymentService paymentService;
+    private final PaymentStatusService paymentStatusService;
 
     @Transactional
     public OrderCreateResult placeOrder(OrderCreateCommand command) {
@@ -150,13 +154,22 @@ public class OrderFacade {
                             // Circuit Breaker OPEN 상태 - 주문은 성공, 결제는 대기 상태로 처리
                             System.out.println("PG Circuit Breaker OPEN - 주문 성공 처리, 결제 대기: " + payment.getPaymentSeq());
                             // Payment 상태를 TIMEOUT_PENDING으로 변경하여 나중에 상태 확인
-                            paymentService.failPayment(payment.getPaymentSeq(), "PG 시스템 일시 장애로 결제 확인 중");
-                            // 사용자에게는 처리중 메시지 반환 (주문은 성공)
+                            payment.updateStatus(PaymentStatus.TIMEOUT_PENDING);
+                            paymentService.save(payment);
+                            
+                            // 비동기로 결제 상태 확인 시작 (3초 간격으로 3번 재시도)
+                            startAsyncPaymentStatusCheck(payment);
+                            
                             System.out.println("Circuit Breaker OPEN - 주문 성공, 결제 확인 중");
                         } else if ("Timeout".equals(errorCode)) {
                             // 타임아웃 - Payment 상태를 TIMEOUT_PENDING으로 변경
                             System.out.println("PG 요청 타임아웃 - 결제 확인 필요: " + payment.getPaymentSeq());
-                            paymentService.failPayment(payment.getPaymentSeq(), "결제 요청 타임아웃으로 상태 확인 중");
+                            payment.updateStatus(PaymentStatus.TIMEOUT_PENDING);
+                            paymentService.save(payment);
+                            
+                            // 비동기로 결제 상태 확인 시작 (3초 간격으로 3번 재시도)
+                            startAsyncPaymentStatusCheck(payment);
+                            
                             System.out.println("PG 타임아웃 - 주문 성공, 결제 확인 중");
                         } else {
                             // 기타 오류
@@ -201,5 +214,19 @@ public class OrderFacade {
     public OrderDetailResult getOrderDetail(Long orderId, Long userId) {
         Order order = orderService.getOrderDetail(orderId, userId);
         return OrderDetailResult.from(order);
+    }
+
+    /**
+     * 비동기로 결제 상태 확인 시작
+     * @Retry로 3초 간격으로 3번 재시도 후 최종 실패 시 취소 처리
+     */
+    @Async
+    public void startAsyncPaymentStatusCheck(Payment payment) {
+        try {
+            System.out.println("비동기 결제 상태 확인 시작: " + payment.getPaymentSeq());
+            paymentStatusService.checkAndRecoverPaymentStatus(payment);
+        } catch (Exception e) {
+            System.out.println("비동기 결제 상태 확인 실패: " + payment.getPaymentSeq() + ", " + e.getMessage());
+        }
     }
 }

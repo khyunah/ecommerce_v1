@@ -6,11 +6,15 @@ import com.loopers.support.error.ErrorType;
 import java.util.Arrays;
 
 public enum PaymentStatus {
-    PENDING,        // 결제 대기
-    COMPLETED,      // 결제 완료
-    FAILED,         // 결제 실패
-    CANCELED,       // 결제 취소 (전액)
-    PARTIAL_CANCELED; // 부분 취소
+    PENDING,           // 결제 대기
+    PG_REQUEST_SENT,   // PG 요청 전송됨 (transactionKey 있음)
+    PG_REQUEST_FAILED, // PG 요청 실패
+    PROCESSING,        // 결제 처리중 (PG사에서 처리중)
+    COMPLETED,         // 결제 완료
+    FAILED,            // 결제 실패
+    CANCELED,          // 결제 취소 (전액)
+    PARTIAL_CANCELED,  // 부분 취소
+    TIMEOUT_PENDING;   // 타임아웃으로 상태 확인 필요
 
     public static PaymentStatus from(String value) {
         validate(value);

@@ -73,6 +73,12 @@ public class Payment extends BaseEntity {
     }
     
     // 결제 성공 처리
+    public void completePayment() {
+        this.paymentStatus = PaymentStatus.COMPLETED;
+        this.paidAt = LocalDateTime.now();
+    }
+
+    // 결제 성공 처리 (PG TID 포함)
     public void completePayment(String pgTid) {
         this.paymentStatus = PaymentStatus.COMPLETED;
         this.pgTransactionKey = pgTid;
@@ -87,10 +93,21 @@ public class Payment extends BaseEntity {
     }
 
     // 결제 취소 처리
+    public void cancelPayment() {
+        this.paymentStatus = PaymentStatus.CANCELED;
+        this.canceledAt = LocalDateTime.now();
+    }
+
+    // 결제 취소 처리 (사유 포함)
     public void cancelPayment(String cancelReason) {
         this.paymentStatus = PaymentStatus.CANCELED;
         this.cancelReason = cancelReason;
         this.canceledAt = LocalDateTime.now();
+    }
+
+    // 결제 상태 업데이트
+    public void updateStatus(PaymentStatus status) {
+        this.paymentStatus = status;
     }
 
 }

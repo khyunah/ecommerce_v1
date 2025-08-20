@@ -99,6 +99,11 @@ public class PaymentService {
         return paymentRepository.findByPaymentStatus(status);
     }
 
+    // 결제 정보 저장
+    public Payment save(Payment payment) {
+        return paymentRepository.save(payment);
+    }
+
     // 결제 번호 생성
     private String generatePaymentSeq() {
         return "KHY_" + System.currentTimeMillis() + "_" + UUID.randomUUID().toString().substring(0, 8);

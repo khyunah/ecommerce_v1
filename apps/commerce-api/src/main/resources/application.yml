@@ -63,6 +63,15 @@ resilience4j:
           - java.net.ConnectException
           - feign.RetryableException
           - com.loopers.infrastructure.payment.PgFeignErrorDecoder$PgServiceUnavailableException
+      pg-payment-status-check:
+        max-attempts: 3            # 상태 확인 3번 재시도
+        wait-duration: 3s          # 3초 간격으로 재시도
+        exponential-backoff-multiplier: 1  # 고정 간격 (3초, 3초, 3초)
+        retry-exceptions:
+          - java.net.SocketTimeoutException
+          - java.net.ConnectException
+          - feign.RetryableException
+          - com.loopers.infrastructure.payment.PgFeignErrorDecoder$PgServiceUnavailableException
   circuitbreaker:
     instances:
       pg-client:

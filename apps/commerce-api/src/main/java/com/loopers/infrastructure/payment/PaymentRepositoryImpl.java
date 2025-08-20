@@ -41,6 +41,11 @@ public class PaymentRepositoryImpl implements PaymentRepository {
     }
 
     @Override
+    public List<Payment> findLongProcessingPayments(int minutes) {
+        return paymentJpaRepository.findLongProcessingPayments(minutes);
+    }
+
+    @Override
     public void delete(Payment payment) {
         paymentJpaRepository.delete(payment);
     }

@@ -20,6 +20,9 @@ public interface PaymentRepository {
     // 특정 상태의 결제 목록 조회
     List<Payment> findByPaymentStatus(PaymentStatus paymentStatus);
 
+    // 장시간 특정 상태인 결제 목록 조회 (분 단위)
+    List<Payment> findLongProcessingPayments(int minutes);
+
     // 결제 정보 삭제 (실제로는 사용하지 않을 것 같지만 완성도를 위해)
     void delete(Payment payment);
 }
