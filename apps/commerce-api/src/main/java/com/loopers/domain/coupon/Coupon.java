@@ -113,4 +113,14 @@ public class Coupon extends BaseEntity {
         }
         isUsed = true;
     }
+
+    /**
+     * 쿠폰 복구 (결제 실패 시 다시 사용 가능하게)
+     */
+    public void restoreCoupon(){
+        if(!isUsed){
+            throw new IllegalArgumentException("사용하지 않은 쿠폰은 복구할 수 없습니다.");
+        }
+        isUsed = false;
+    }
 }

@@ -1,5 +1,8 @@
 package com.loopers.application.payment;
 
+import com.loopers.application.order.OrderRecoveryService;
+import com.loopers.domain.order.Order;
+import com.loopers.domain.order.OrderRepository;
 import com.loopers.domain.payment.Payment;
 import com.loopers.domain.payment.PaymentRepository;
 import com.loopers.domain.payment.PaymentStatus;
@@ -20,6 +23,8 @@ import java.util.List;
 public class PaymentStatusService {
 
     private final PaymentRepository paymentRepository;
+    private final OrderRepository orderRepository;
+    private final OrderRecoveryService orderRecoveryService;
     private final PgFeignClient pgFeignClient;
 
     /**
@@ -95,8 +100,19 @@ public class PaymentStatusService {
         payment.failPayment("PG 상태 확인 3번 실패로 자동 취소");
         paymentRepository.save(payment);
         
-        // 재고/포인트 복구는 별도 서비스에서 처리
-        System.out.println("재고/포인트 복구가 필요한 결제: " + payment.getPaymentSeq());
+        // 주문 정보 조회 후 복구 처리
+        try {
+            Order order = orderRepository.findById(payment.getRefOrderId())
+                    .orElseThrow(() -> new IllegalArgumentException("주문 정보를 찾을 수 없습니다"));
+            
+            // 재고/포인트/쿠폰 복구
+            orderRecoveryService.handlePaymentFailure(payment, order);
+            
+            System.out.println("재고/포인트/쿠폰 복구 완료: " + payment.getPaymentSeq());
+            
+        } catch (Exception e) {
+            System.out.println("복구 처리 중 오류: " + payment.getPaymentSeq() + ", " + e.getMessage());
+        }
     }
 
     /**
