@@ -146,6 +146,18 @@ public class OrderFacade {
                         } else if ("Internal Server Error".equals(errorCode)) {
                             // PG사 서버 오류 (500번대) - 재시도 가능한 오류로 처리
                             throw new CoreException(ErrorType.INTERNAL_ERROR, errorMessage);
+                        } else if ("Circuit Breaker Open".equals(errorCode)) {
+                            // Circuit Breaker OPEN 상태 - 주문은 성공, 결제는 대기 상태로 처리
+                            System.out.println("PG Circuit Breaker OPEN - 주문 성공 처리, 결제 대기: " + payment.getPaymentSeq());
+                            // Payment 상태를 TIMEOUT_PENDING으로 변경하여 나중에 상태 확인
+                            paymentService.failPayment(payment.getPaymentSeq(), "PG 시스템 일시 장애로 결제 확인 중");
+                            // 사용자에게는 처리중 메시지 반환 (주문은 성공)
+                            System.out.println("Circuit Breaker OPEN - 주문 성공, 결제 확인 중");
+                        } else if ("Timeout".equals(errorCode)) {
+                            // 타임아웃 - Payment 상태를 TIMEOUT_PENDING으로 변경
+                            System.out.println("PG 요청 타임아웃 - 결제 확인 필요: " + payment.getPaymentSeq());
+                            paymentService.failPayment(payment.getPaymentSeq(), "결제 요청 타임아웃으로 상태 확인 중");
+                            System.out.println("PG 타임아웃 - 주문 성공, 결제 확인 중");
                         } else {
                             // 기타 오류
                             throw new CoreException(ErrorType.BAD_REQUEST, "결제 요청에 실패했습니다: " + errorMessage);

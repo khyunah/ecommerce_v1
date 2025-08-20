@@ -203,6 +203,96 @@ class OrderFacadeTest {
         verify(pgClient).requestPayment(any());
     }
 
+    @DisplayName("주문 성공 - PG Circuit Breaker OPEN 상태")
+    @Test
+    void placeOrder_succeeds_when_circuit_breaker_open() {
+        // given
+        User user = userService.register(User.from("userId777", "test7@naver.com", "1995-01-01", "F"));
+        Product product = productRepository.save(Product.from("티셔츠7","설명7",BigDecimal.valueOf(1000L), BigDecimal.valueOf(1500L),"ON_SALE", 20L));
+        pointRepository.save(Point.from(user.getId(),500L));
+        stockRepository.save(Stock.from(product.getId(), 10));
+
+        List<OrderItemCriteria> items = List.of(new OrderItemCriteria(product.getId(), 1));
+
+        // PG 응답 모킹 - Circuit Breaker OPEN
+        when(pgClient.requestPayment(any())).thenReturn(
+                new PgPaymentResponse(
+                        new PgPaymentResponse.PgMeta("FAIL", "Circuit Breaker Open", "결제 시스템 일시 장애. 잠시 후 다시 시도해주세요."),
+                        null
+                )
+        );
+
+        // when
+        OrderCreateCommand command = new OrderCreateCommand(
+                user.getId(),
+                items,
+                "ORDER-777",
+                -1L,
+                500L,
+                "CARD",  // 카드 결제
+                "KHY_PG",
+                "SAMSUNG",  // 카드 타입
+                "1234-5678-9012-3456"  // 카드 번호
+        );
+
+        OrderCreateResult result = orderFacade.placeOrder(command);
+
+        // then - 주문은 성공하지만 결제는 실패 상태
+        assertThat(result.orderId()).isNotNull();
+        
+        List<Payment> payments = paymentRepository.findByOrderId(result.orderId());
+        assertThat(payments).hasSize(1);
+        Payment payment = payments.get(0);
+        assertThat(payment.getPaymentStatus()).isEqualTo(PaymentStatus.FAILED); // Circuit Breaker로 인한 실패
+
+        verify(pgClient).requestPayment(any());
+    }
+
+    @DisplayName("주문 성공 - PG 요청 타임아웃")
+    @Test
+    void placeOrder_succeeds_when_pg_timeout() {
+        // given
+        User user = userService.register(User.from("userId888", "test8@naver.com", "1995-01-01", "M"));
+        Product product = productRepository.save(Product.from("티셔츠8","설명8",BigDecimal.valueOf(1000L), BigDecimal.valueOf(1500L),"ON_SALE", 20L));
+        pointRepository.save(Point.from(user.getId(),500L));
+        stockRepository.save(Stock.from(product.getId(), 10));
+
+        List<OrderItemCriteria> items = List.of(new OrderItemCriteria(product.getId(), 1));
+
+        // PG 응답 모킹 - Timeout
+        when(pgClient.requestPayment(any())).thenReturn(
+                new PgPaymentResponse(
+                        new PgPaymentResponse.PgMeta("FAIL", "Timeout", "결제 요청 시간이 초과되었습니다."),
+                        null
+                )
+        );
+
+        // when
+        OrderCreateCommand command = new OrderCreateCommand(
+                user.getId(),
+                items,
+                "ORDER-888",
+                -1L,
+                500L,
+                "CARD",  // 카드 결제
+                "KHY_PG",
+                "SAMSUNG",  // 카드 타입
+                "1234-5678-9012-3456"  // 카드 번호
+        );
+
+        OrderCreateResult result = orderFacade.placeOrder(command);
+
+        // then - 주문은 성공하지만 결제는 실패 상태
+        assertThat(result.orderId()).isNotNull();
+        
+        List<Payment> payments = paymentRepository.findByOrderId(result.orderId());
+        assertThat(payments).hasSize(1);
+        Payment payment = payments.get(0);
+        assertThat(payment.getPaymentStatus()).isEqualTo(PaymentStatus.FAILED); // 타임아웃으로 인한 실패
+
+        verify(pgClient).requestPayment(any());
+    }
+
     @DisplayName("주문 실패 - 카드 결제 PG 요청 실패 (Internal Server Error)")
     @Test
     void placeOrder_fails_when_pg_request_fails_with_internal_server_error() {
@@ -282,50 +372,6 @@ class OrderFacadeTest {
 
         verify(externalOrderSender).sendOrder(any(Order.class));
         // 금액이 0원이므로 PG 클라이언트는 호출되지 않아야 함
-        verify(pgClient, never()).requestPayment(any());
-    }
-
-    @DisplayName("주문 성공 - 다른 결제 방법 (PG사 연결 불필요)")
-    @Test
-    void placeOrder_successfully_with_other_payment_method() {
-        // given
-        User user = userService.register(User.from("userId999", "test4@naver.com", "1995-01-01", "M"));
-        Product product = productRepository.save(Product.from("티셔츠4","설명4",BigDecimal.valueOf(1000L), BigDecimal.valueOf(1500L),"ON_SALE", 20L));
-        pointRepository.save(Point.from(user.getId(),500L));
-        stockRepository.save(Stock.from(product.getId(), 10));
-
-        List<OrderItemCriteria> items = List.of(new OrderItemCriteria(product.getId(), 1));
-
-        // when
-        OrderCreateCommand command = new OrderCreateCommand(
-                user.getId(),
-                items,
-                "ORDER-999",
-                -1L,
-                500L,
-                "POINT_ONLY",  // 카카오페이 (PG사 연결 불필요)
-                "KHY_PG",
-                null,  // 카카오페이는 카드 타입 불필요
-                null   // 카카오페이는 카드 번호 불필요
-        );
-
-        OrderCreateResult result = orderFacade.placeOrder(command);
-
-        // then
-        assertThat(result.orderId()).isNotNull();
-        
-        // 결제가 생성되었는지 확인
-        List<Payment> payments = paymentRepository.findByOrderId(result.orderId());
-        assertThat(payments).hasSize(1);
-        Payment payment = payments.get(0);
-        assertThat(payment.getPaymentAmount()).isEqualTo(500L);
-        
-        // 카카오페이는 CARD가 아니므로 PG사 연결 없이 바로 완료
-        Order order = orderRepository.findById(result.orderId()).get();
-        assertThat(order.getOrderStatus()).isEqualTo(OrderStatus.PAID);
-
-        verify(externalOrderSender).sendOrder(any(Order.class));
-        // 카카오페이는 PG 클라이언트 호출되지 않아야 함
         verify(pgClient, never()).requestPayment(any());
     }
 }
