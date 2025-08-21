@@ -27,7 +27,7 @@ spring:
 # PG 연동 설정
 pg:
   payment:
-    url: http://localhost:8081
+    url: http://localhost:8082
   callback:
     url: http://localhost:8080/api/v1/payments/callback
 
@@ -62,7 +62,6 @@ resilience4j:
           - java.net.SocketTimeoutException
           - java.net.ConnectException
           - feign.RetryableException
-          - com.loopers.infrastructure.payment.PgFeignErrorDecoder$PgServiceUnavailableException
       pg-payment-status-check:
         max-attempts: 3            # 상태 확인 3번 재시도
         wait-duration: 3s          # 3초 간격으로 재시도
@@ -71,7 +70,6 @@ resilience4j:
           - java.net.SocketTimeoutException
           - java.net.ConnectException
           - feign.RetryableException
-          - com.loopers.infrastructure.payment.PgFeignErrorDecoder$PgServiceUnavailableException
   circuitbreaker:
     instances:
       pg-client:

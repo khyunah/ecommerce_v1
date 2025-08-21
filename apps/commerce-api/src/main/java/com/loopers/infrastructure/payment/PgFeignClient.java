@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 
 @FeignClient(
     name = "pg-client", 
-    url = "${pg.payment.url:http://localhost:8082}",
+    url = "${pg.payment.url}",
     configuration = PgFeignConfig.class
 )
 public interface PgFeignClient {
