@@ -23,7 +23,7 @@ public class Coupon extends BaseEntity {
     @Enumerated(EnumType.STRING)
     private CouponType couponType;
 
-    private Long discountPrice;
+    private Long discountValue;
 
     private int discountRate;
 
@@ -33,24 +33,26 @@ public class Coupon extends BaseEntity {
     @Version
     private Long version;
 
-    private Coupon(Long refUserId, String name, CouponType couponType, Long discountPrice, int discountRate){
+    private Coupon(Long refUserId, String name, CouponType couponType, Long discountValue){
         this.refUserId = refUserId;
         this.name = name;
         this.couponType = couponType;
-        this.discountPrice = discountPrice;
-        this.discountRate = discountRate;
+        this.discountValue = discountValue;
     }
 
-    public static Coupon from(Long userId, String name, String couponType, Long discountPrice, int discountRate) {
+    public static Coupon from(Long userId, String name, String couponType, Long discountValue) {
         validateName(name);
-        validateDiscountPrice(discountPrice);
-        validateDiscountRate(discountRate);
+        CouponType couponType1 = CouponType.from(couponType);
+        if(couponType1 == CouponType.PRICE){
+            validateDiscountPrice(discountValue);
+        } else if(couponType1 == CouponType.RATE){
+            validateDiscountRate(discountValue);
+        }
         return new Coupon(
                 userId,
                 name,
-                CouponType.from(couponType),
-                discountPrice,
-                discountRate
+                couponType1,
+                discountValue
         );
     }
 
@@ -68,20 +70,32 @@ public class Coupon extends BaseEntity {
         }
     }
 
-    public static void validateDiscountRate(int discountRate) {
+    public static void validateDiscountRate(Long discountRate) {
         if(discountRate < 0 || discountRate > 100) {
             throw new IllegalArgumentException("쿠폰할인율은 0이상 100이하여야 합니다.");
         }
     }
 
+    public Long applyCoupon(Coupon coupon, Long originalPrice) {
+        Long discountAmount = 0L;
+        if(coupon == null){
+            throw new IllegalArgumentException("쿠폰이 존재하지 않습니다.");
+        } else if(this.couponType == CouponType.PRICE){
+            discountAmount = applyPriceDiscount(originalPrice, coupon.discountValue);
+        } else if(this.couponType == CouponType.RATE){
+            discountAmount = applyRateDiscount(originalPrice, coupon.discountValue);
+        }
+        return discountAmount;
+    }
+
     // 정률 할인 쿠폰 계산
-    public Long applyRateDiscount(Long originalPrice, int discountRate) {
+    public Long applyRateDiscount(Long originalPrice, Long discountRate) {
         if(!couponType.name().equals(CouponType.RATE.name())){
             throw new IllegalArgumentException("정률 할인 쿠폰이 아닙니다.");
         }
         validateDiscountRate(discountRate);
-        long discountedPrice = originalPrice * (100 - discountRate) / 100;
-        return Math.max(0, discountedPrice);
+        long discountAmount = originalPrice * discountRate / 100;
+        return Math.min(discountAmount, originalPrice); // 원가보다 클 수 없음
     }
 
     // 정액 할인 쿠폰 계산
@@ -90,8 +104,7 @@ public class Coupon extends BaseEntity {
             throw new IllegalArgumentException("정액 할인 쿠폰이 아닙니다.");
         }
         validateDiscountPrice(discountPrice);
-        long discountedPrice = originalPrice - discountPrice;
-        return Math.max(0, discountedPrice);
+        return Math.min(discountPrice, originalPrice); // 원가보다 클 수 없음
     }
 
     public void useCoupon(){
@@ -99,5 +112,15 @@ public class Coupon extends BaseEntity {
            throw new IllegalArgumentException("이미 사용한 쿠폰입니다.");
         }
         isUsed = true;
+    }
+
+    /**
+     * 쿠폰 복구 (결제 실패 시 다시 사용 가능하게)
+     */
+    public void restoreCoupon(){
+        if(!isUsed){
+            throw new IllegalArgumentException("사용하지 않은 쿠폰은 복구할 수 없습니다.");
+        }
+        isUsed = false;
     }
 }

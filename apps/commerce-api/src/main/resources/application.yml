@@ -24,6 +24,64 @@ spring:
       - logging.yml
       - monitoring.yml
 
+# PG 연동 설정
+pg:
+  payment:
+    url: http://localhost:8082
+  callback:
+    url: http://localhost:8080/api/v1/payments/callback
+
+# Feign 클라이언트 설정
+feign:
+  client:
+    config:
+      pg-client:
+        connect-timeout: 3000      # 연결 타임아웃 3초
+        read-timeout: 10000        # 읽기 타임아웃 10초
+        logger-level: basic
+  compression:
+    request:
+      enabled: true
+    response:
+      enabled: true
+
+# Resilience4j 설정
+resilience4j:
+  timelimiter:
+    instances:
+      pg-client:
+        timeout-duration: 12s      # 전체 타임아웃 12초
+        cancel-running-future: true
+  retry:
+    instances:
+      pg-payment-request:
+        max-attempts: 3            # 최대 3번 재시도
+        wait-duration: 2s          # 재시도 간격 2초
+        exponential-backoff-multiplier: 2  # 지수 백오프
+        retry-exceptions:
+          - java.net.SocketTimeoutException
+          - java.net.ConnectException
+          - feign.RetryableException
+      pg-payment-status-check:
+        max-attempts: 3            # 상태 확인 3번 재시도
+        wait-duration: 3s          # 3초 간격으로 재시도
+        exponential-backoff-multiplier: 1  # 고정 간격 (3초, 3초, 3초)
+        retry-exceptions:
+          - java.net.SocketTimeoutException
+          - java.net.ConnectException
+          - feign.RetryableException
+  circuitbreaker:
+    instances:
+      pg-client:
+        failure-rate-threshold: 50        # 실패율 50% 초과시 OPEN
+        slow-call-rate-threshold: 70      # 느린 호출 70% 초과시 OPEN
+        slow-call-duration-threshold: 8s  # 8초 이상을 느린 호출로 간주
+        minimum-number-of-calls: 10       # 최소 10번 호출 후 통계 계산
+        sliding-window-size: 20           # 슬라이딩 윈도우 크기
+        wait-duration-in-open-state: 30s  # OPEN 상태 30초 유지
+        permitted-number-of-calls-in-half-open-state: 5  # HALF-OPEN에서 5번 테스트
+        automatic-transition-from-open-to-half-open-enabled: true
+
 springdoc:
   use-fqn: true
   swagger-ui:

@@ -12,7 +12,7 @@ class CouponTest {
     @Test
     void should_apply_fixed_amount_coupon_and_return_discounted_price(){
         // given
-        Coupon coupon = Coupon.from(1L, "티셔츠 할인쿠폰", CouponType.PRICE.name(),10000L,0);
+        Coupon coupon = Coupon.from(1L, "티셔츠 할인쿠폰", CouponType.PRICE.name(),10000L);
         coupon.useCoupon();
 
         // when

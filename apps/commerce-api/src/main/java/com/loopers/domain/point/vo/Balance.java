@@ -45,4 +45,12 @@ public class Balance {
         }
         return new Balance(current - amount);
     }
+
+    /**
+     * 현재 Balance에 포인트 추가 (인스턴스 메서드)
+     */
+    public void plus(Long amount) {
+        validate(amount);
+        this.value = this.value + amount;
+    }
 }

@@ -1,6 +1,7 @@
 package com.loopers.domain.like;
 
 import com.loopers.domain.like.dto.LikedProductDto;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -11,6 +12,7 @@ import org.springframework.stereotype.Component;
 public class LikeService {
     private final LikeRepository likeRepository;
 
+    @Transactional
     public boolean create(Like like) {
         // 상품당 1개의 좋아요만 가능 -> 멱등성 보장
         boolean isExisting = likeRepository.existsByRefUserIdAndRefProductId(like.getRefUserId(), like.getRefProductId());
@@ -22,6 +24,7 @@ public class LikeService {
         return savedLike.getRefUserId().equals(like.getRefUserId());
     }
 
+    @Transactional
     public boolean delete(Like like) {
         boolean isExisting = likeRepository.existsByRefUserIdAndRefProductId(like.getRefUserId(), like.getRefProductId());
         if(!isExisting){

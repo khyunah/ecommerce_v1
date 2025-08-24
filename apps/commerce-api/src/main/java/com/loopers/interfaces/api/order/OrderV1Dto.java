@@ -16,14 +16,24 @@ public class OrderV1Dto {
     public record OrderCreateRequest(
             List<OrderItemRequest> items,
             String orderSeq,
-            Long couponId
+            Long couponId,
+            Long usedPoint,
+            String paymentMethod,
+            String pgProvider,
+            String cardType,
+            String cardNo
     ){
         public static OrderCreateCommand toOrderCreateCommand(Long userId, OrderCreateRequest request){
             return new OrderCreateCommand(
                     userId,
                     OrderItemRequest.toOrderItemList(request.items),
                     request.orderSeq(),
-                    request.couponId
+                    request.couponId,
+                    request.usedPoint(),
+                    request.paymentMethod(),
+                    request.pgProvider(),
+                    request.cardType(),
+                    request.cardNo()
             );
         }
     }
