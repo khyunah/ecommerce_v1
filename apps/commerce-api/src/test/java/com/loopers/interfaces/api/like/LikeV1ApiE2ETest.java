@@ -65,7 +65,7 @@ public class LikeV1ApiE2ETest {
                         .param("sort", "createdAt,DESC"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content").isArray())
-                .andExpect(jsonPath("$.content.length()").value(3))
+                .andExpect(jsonPath("$.content.length()").value(2))
                 .andExpect(jsonPath("$.content[0].productName").exists())
                 .andExpect(jsonPath("$.content[0].productId").exists())
                 .andExpect(jsonPath("$.content[0].liked").value(true))

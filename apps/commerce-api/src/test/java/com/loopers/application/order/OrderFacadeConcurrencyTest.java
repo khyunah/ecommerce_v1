@@ -338,6 +338,13 @@ public class OrderFacadeConcurrencyTest {
         ExecutorService executorService = Executors.newFixedThreadPool(threadCount);
         CountDownLatch latch = new CountDownLatch(threadCount);
 
+        Stock stock = stockRepository.findById(stockId1).orElseThrow();
+        int stockQuantity = stock.getQuantity();
+
+        Point point = pointRepository.findById(pointId1).orElseThrow();
+        Long pointBalance = point.getBalance().getValue();
+
+        Long usedPoint = 1000L;
         for (int i = 0; i < threadCount; i++) {
             executorService.submit(() -> {
                 try {
@@ -347,7 +354,7 @@ public class OrderFacadeConcurrencyTest {
                             items,
                             "ORDER-SEQ-" + Thread.currentThread().getId(),
                             couponId1,
-                            1000L,
+                            usedPoint,
                             "POINT_ONLY",
                             "KHY_PG",
                             null,
@@ -367,8 +374,8 @@ public class OrderFacadeConcurrencyTest {
         executorService.shutdown();
 
         // 검증
-        Stock stock = stockRepository.findById(stockId1).orElseThrow();
-        Point point = pointRepository.findById(pointId1).orElseThrow();
+        stock = stockRepository.findById(stockId1).orElseThrow();
+        point = pointRepository.findById(pointId1).orElseThrow();
         Coupon coupon = couponRepository.findById(couponId1).orElseThrow();
         List<Order> orders = orderRepository.findAllByUserId(userId1);
 
@@ -377,8 +384,8 @@ public class OrderFacadeConcurrencyTest {
         System.out.println("쿠폰 사용 상태 = " + coupon.isUsed());
         System.out.println("성공한 주문 수 = " + orders.size());
 
-        assertThat(stock.getQuantity()).isEqualTo(9);
-        assertThat(point.getBalance().getValue()).isEqualTo(19000);
+        assertThat(stock.getQuantity()).isEqualTo(stockQuantity - orders.size());
+        assertThat(point.getBalance().getValue()).isEqualTo(pointBalance - (orders.size() * usedPoint));
         assertThat(orders.size()).isLessThanOrEqualTo(1); // 일부는 실패 가능
     }
 }

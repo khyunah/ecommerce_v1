@@ -4,6 +4,7 @@ import com.loopers.application.order.in.OrderCreateCommand;
 import com.loopers.application.order.in.OrderItemCriteria;
 import com.loopers.application.order.out.OrderCreateResult;
 import com.loopers.domain.order.*;
+import com.loopers.domain.order.event.OrderCompletedEvent;
 import com.loopers.domain.payment.Payment;
 import com.loopers.domain.payment.PaymentRepository;
 import com.loopers.domain.payment.PaymentStatus;
@@ -26,6 +27,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.context.event.ApplicationEvents;
+import org.springframework.test.context.event.RecordApplicationEvents;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -36,6 +39,7 @@ import static org.mockito.Mockito.*;
 
 @SpringBootTest
 @Transactional
+@RecordApplicationEvents
 class OrderFacadeTest {
     @Autowired
     private OrderFacade orderFacade;
@@ -58,9 +62,9 @@ class OrderFacadeTest {
     @Autowired
     private PaymentRepository paymentRepository;
 
-    @MockBean // 외부 시스템은 모킹
-    private ExternalOrderSender externalOrderSender;
-    
+    @Autowired
+    private ApplicationEvents events;
+
     @MockBean // PG 클라이언트 모킹
     private PgClient pgClient;
     
@@ -108,7 +112,16 @@ class OrderFacadeTest {
         Order order = orderRepository.findById(result.orderId()).get();
         assertThat(order.getOrderStatus()).isEqualTo(OrderStatus.PAID);
 
-        verify(externalOrderSender).sendOrder(any(Order.class)); // 외부 시스템 호출 확인
+        // 주문 완료 이벤트 발행 확인 (외부 시스템 전송을 위한 이벤트)
+        long eventCount = events.stream(OrderCompletedEvent.class).count();
+        assertThat(eventCount).isEqualTo(1);
+        
+        OrderCompletedEvent publishedEvent = events.stream(OrderCompletedEvent.class)
+                .findFirst()
+                .orElseThrow();
+        assertThat(publishedEvent.getOrderId()).isEqualTo(result.orderId());
+        assertThat(publishedEvent.getUserId()).isEqualTo(user.getId());
+        
         // PG 클라이언트는 호출되지 않아야 함
         verify(pgClient, never()).requestPayment(any());
     }
@@ -161,7 +174,10 @@ class OrderFacadeTest {
         Order order = orderRepository.findById(result.orderId()).get();
         assertThat(order.getOrderStatus()).isEqualTo(OrderStatus.PENDING);
 
-        verify(externalOrderSender).sendOrder(any(Order.class));
+        // 주문 완료 이벤트 발행 확인
+        long eventCount = events.stream(OrderCompletedEvent.class).count();
+        assertThat(eventCount).isEqualTo(1);
+        
         verify(pgClient).requestPayment(any()); // PG 클라이언트 호출 확인
     }
 
@@ -201,6 +217,10 @@ class OrderFacadeTest {
                 .isInstanceOf(CoreException.class);
 
         verify(pgClient).requestPayment(any());
+        
+        // 실패한 경우 이벤트가 발행되지 않음
+        long eventCount = events.stream(OrderCompletedEvent.class).count();
+        assertThat(eventCount).isEqualTo(0);
     }
 
     @DisplayName("주문 성공 - PG Circuit Breaker OPEN 상태")
@@ -244,6 +264,10 @@ class OrderFacadeTest {
         assertThat(payments).hasSize(1);
         Payment payment = payments.get(0);
         assertThat(payment.getPaymentStatus()).isEqualTo(PaymentStatus.FAILED); // Circuit Breaker로 인한 실패
+
+        // 주문 완료 이벤트는 발행됨 (주문 자체는 성공)
+        long eventCount = events.stream(OrderCompletedEvent.class).count();
+        assertThat(eventCount).isEqualTo(1);
 
         verify(pgClient).requestPayment(any());
     }
@@ -290,6 +314,10 @@ class OrderFacadeTest {
         Payment payment = payments.get(0);
         assertThat(payment.getPaymentStatus()).isEqualTo(PaymentStatus.FAILED); // 타임아웃으로 인한 실패
 
+        // 주문 완료 이벤트는 발행됨
+        long eventCount = events.stream(OrderCompletedEvent.class).count();
+        assertThat(eventCount).isEqualTo(1);
+
         verify(pgClient).requestPayment(any());
     }
 
@@ -329,6 +357,10 @@ class OrderFacadeTest {
                 .isInstanceOf(CoreException.class);
 
         verify(pgClient).requestPayment(any());
+        
+        // 실패한 경우 이벤트가 발행되지 않음
+        long eventCount = events.stream(OrderCompletedEvent.class).count();
+        assertThat(eventCount).isEqualTo(0);
     }
 
     @DisplayName("주문 성공 - 카드 결제이지만 금액이 0원")
@@ -370,7 +402,10 @@ class OrderFacadeTest {
         Order order = orderRepository.findById(result.orderId()).get();
         assertThat(order.getOrderStatus()).isEqualTo(OrderStatus.PAID);
 
-        verify(externalOrderSender).sendOrder(any(Order.class));
+        // 주문 완료 이벤트 발행 확인
+        long eventCount = events.stream(OrderCompletedEvent.class).count();
+        assertThat(eventCount).isEqualTo(1);
+        
         // 금액이 0원이므로 PG 클라이언트는 호출되지 않아야 함
         verify(pgClient, never()).requestPayment(any());
     }
