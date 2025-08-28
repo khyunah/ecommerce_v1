@@ -11,6 +11,8 @@ import com.loopers.domain.coupon.CouponService;
 import com.loopers.domain.order.*;
 import com.loopers.domain.order.event.CouponUsageEvent;
 import com.loopers.domain.order.event.OrderCompletedEvent;
+import com.loopers.domain.user.event.UserActionEvent;
+import com.loopers.domain.user.event.UserActionType;
 import com.loopers.domain.payment.Payment;
 import com.loopers.domain.payment.PaymentMethod;
 import com.loopers.domain.payment.PaymentService;
@@ -33,7 +35,9 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 주문 Facade - 쿠폰 처리를 이벤트로 분리하되 트랜잭션 유지
@@ -132,6 +136,7 @@ public class OrderFacade {
         try {
             log.info("주문 완료 이벤트 발행 - orderId: {}, userId: {}", order.getId(), order.getRefUserId());
             
+            // 1. 주문 완료 이벤트 발행 (데이터 플랫폼 전송용)
             OrderCompletedEvent event = OrderCompletedEvent.create(
                     order.getId(),
                     order.getRefUserId(),
@@ -139,8 +144,35 @@ public class OrderFacade {
                     order.getFinalAmount(),
                     command.paymentMethod()
             );
-            
             eventPublisher.publishEvent(event);
+            
+            // 2. 사용자 행동 추적 이벤트 발행 (분석용)
+            Map<String, Object> properties = new HashMap<>();
+            properties.put("orderSeq", order.getOrderSeq());
+            properties.put("totalAmount", order.getTotalPrice());
+            properties.put("finalAmount", order.getFinalAmount());
+            properties.put("paymentMethod", command.paymentMethod());
+            properties.put("itemCount", order.getOrderItems().size());
+            if (command.couponId() != null && command.couponId() > 0) {
+                properties.put("usedCoupon", true);
+                properties.put("couponId", command.couponId());
+            }
+            if (command.usedPoint() != null && command.usedPoint() > 0) {
+                properties.put("usedPoint", command.usedPoint());
+            }
+            
+            UserActionEvent userActionEvent = new UserActionEvent(
+                    order.getRefUserId(),
+                    "ORDER_SESSION_" + order.getId(), // 세션 ID 대신 주문별 고유 ID
+                    UserActionType.ORDER_COMPLETE,
+                    "ORDER",
+                    order.getId().toString(),
+                    properties,
+                    null, // User-Agent (주문 완료시에는 없을 수 있음)
+                    null, // IP Address
+                    null  // Referer
+            );
+            eventPublisher.publishEvent(userActionEvent);
             
         } catch (Exception e) {
             // 이벤트 발행 실패해도 주문 처리는 성공으로 처리
