@@ -10,6 +10,7 @@ import com.loopers.domain.coupon.Coupon;
 import com.loopers.domain.coupon.CouponService;
 import com.loopers.domain.order.*;
 import com.loopers.domain.order.event.CouponUsageEvent;
+import com.loopers.domain.order.event.OrderCompletedEvent;
 import com.loopers.domain.payment.Payment;
 import com.loopers.domain.payment.PaymentMethod;
 import com.loopers.domain.payment.PaymentService;
@@ -44,7 +45,6 @@ import java.util.List;
 @RequiredArgsConstructor
 @Component
 public class OrderFacade {
-    private final ExternalOrderSender externalOrderSender;
     private final ApplicationEventPublisher eventPublisher;
     private final CouponService couponService;
 
@@ -114,8 +114,8 @@ public class OrderFacade {
             // 6. 결제 처리
             handlePayment(order, command);
 
-            // 7. 외부 시스템 전송
-            externalOrderSender.sendOrder(order);
+            // 7. 주문 완료 이벤트 발행 (외부 시스템 전송을 이벤트로 분리)
+            publishOrderCompletedEvent(order, command);
 
         } catch (Exception e){
             log.error("주문 처리 중 오류 발생 - userId: {}", command.userId(), e);
@@ -123,6 +123,29 @@ public class OrderFacade {
         }
 
         return OrderCreateResult.from(order, totalPrice);
+    }
+
+    /**
+     * 주문 완료 이벤트 발행 - 외부 시스템 전송과 분리
+     */
+    private void publishOrderCompletedEvent(Order order, OrderCreateCommand command) {
+        try {
+            log.info("주문 완료 이벤트 발행 - orderId: {}, userId: {}", order.getId(), order.getRefUserId());
+            
+            OrderCompletedEvent event = OrderCompletedEvent.create(
+                    order.getId(),
+                    order.getRefUserId(),
+                    order.getTotalPrice(),
+                    order.getFinalAmount(),
+                    command.paymentMethod()
+            );
+            
+            eventPublisher.publishEvent(event);
+            
+        } catch (Exception e) {
+            // 이벤트 발행 실패해도 주문 처리는 성공으로 처리
+            log.error("주문 완료 이벤트 발행 실패 - orderId: {}", order.getId(), e);
+        }
     }
 
     // 쿠폰 이벤트
