@@ -14,4 +14,8 @@ public class CouponService {
         return couponRepository.findByIdAndRefUserIdWithLock(id, userId)
                 .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "쿠폰을 찾을 수 없습니다."));
     }
+
+    public Coupon save(Coupon coupon) {
+        return couponRepository.save(coupon);
+    }
 }

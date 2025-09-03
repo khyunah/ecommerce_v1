@@ -104,4 +104,14 @@ public class Order extends BaseEntity {
         this.orderStatus = OrderStatus.CANCELED;
     }
 
+    // 결제 완료 여부 확인
+    public boolean isPaymentCompleted() {
+        return this.orderStatus == OrderStatus.PAID;
+    }
+
+    // 총 주문 금액 조회
+    public Long getTotalPrice() {
+        return this.totalAmount;
+    }
+
 }
