@@ -18,7 +18,8 @@ import java.util.concurrent.CompletableFuture;
 @RequiredArgsConstructor
 public class KafkaEventPublisher implements EventPublisher {
 
-    private final KafkaTemplate<String, Object> kafkaTemplate;
+    private final KafkaTemplate<Object, Object> kafkaTemplate;
+    private final PartitionKeyStrategy partitionKeyStrategy;
 
     @Override
     public void publishCatalogEvent(BaseEvent event) {
@@ -32,23 +33,23 @@ public class KafkaEventPublisher implements EventPublisher {
 
     @Override
     public void publishEvent(String topic, BaseEvent event) {
-        String partitionKey = event.getPartitionKey();
+        String partitionKey = partitionKeyStrategy.generatePartitionKey(event);
         
-        log.info("Publishing event - Topic: {}, EventType: {}, EventId: {}, PartitionKey: {}", 
-                topic, event.getEventType(), event.getEventId(), partitionKey);
+        log.info("Publishing event - Topic: {}, EventType: {}, EventId: {}, PartitionKey: {}, AggregateId: {}", 
+                topic, event.getEventType(), event.getEventId(), partitionKey, event.getAggregateId());
 
-        CompletableFuture<SendResult<String, Object>> future = kafkaTemplate.send(topic, partitionKey, event);
+        CompletableFuture<SendResult<Object, Object>> future = kafkaTemplate.send(topic, partitionKey, event);
         
         future.whenComplete((result, ex) -> {
             if (ex == null) {
-                log.info("Event published successfully - EventId: {}, Offset: {}, Partition: {}", 
+                log.info("Event published successfully - EventId: {}, Topic: {}, Offset: {}, Partition: {}", 
                         event.getEventId(), 
+                        topic,
                         result.getRecordMetadata().offset(), 
                         result.getRecordMetadata().partition());
             } else {
-                log.error("Failed to publish event - EventId: {}, Error: {}", 
-                        event.getEventId(), ex.getMessage(), ex);
-                // TODO: 실패 시 처리 로직 (Dead Letter Queue, 재시도 등)
+                log.error("Failed to publish event - EventId: {}, Topic: {}, PartitionKey: {}, Error: {}", 
+                        event.getEventId(), topic, partitionKey, ex.getMessage(), ex);
                 handlePublishFailure(event, ex);
             }
         });
