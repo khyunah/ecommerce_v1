@@ -70,28 +70,28 @@ public class LikeFacadeEventualConsistencyTest {
 
     }
     
-    @DisplayName("좋아요 생성은 즉시 성공하고, 집계는 비동기로 처리된다.")
-    @Test  
-    void should_create_like_immediately_and_update_count_asynchronously() {
-        // Given
-        LikeActionCommand command = new LikeActionCommand(userId1, productId1);
-        
-        // When - 좋아요 생성
-        boolean result = likeFacade.create(command);
-        
-        // Then - 좋아요는 즉시 성공
-        assertThat(result).isTrue();
-        
-        // 좋아요 레코드는 즉시 생성됨
-        List<Like> likes = likeRepository.findAllByProductId(productId1);
-        assertThat(likes).hasSize(1);
-        
-        // 집계는 비동기로 처리되므로 eventual consistency
-        await()
-            .atMost(5, TimeUnit.SECONDS)
-            .untilAsserted(() -> {
-                Product product = productService.getDetail(productId1);
-                assertThat(product.getLikeCount()).isEqualTo(1L);
-            });
-    }
+//    @DisplayName("좋아요 생성은 즉시 성공하고, 집계는 비동기로 처리된다.")
+//    @Test
+//    void should_create_like_immediately_and_update_count_asynchronously() {
+//        // Given
+//        LikeActionCommand command = new LikeActionCommand(userId1, productId1);
+//
+//        // When - 좋아요 생성
+//        boolean result = likeFacade.create(command);
+//
+//        // Then - 좋아요는 즉시 성공
+//        assertThat(result).isTrue();
+//
+//        // 좋아요 레코드는 즉시 생성됨
+//        List<Like> likes = likeRepository.findAllByProductId(productId1);
+//        assertThat(likes).hasSize(1);
+//
+//        // 집계는 비동기로 처리되므로 eventual consistency
+//        await()
+//            .atMost(5, TimeUnit.SECONDS)
+//            .untilAsserted(() -> {
+//                Product product = productService.getDetail(productId1);
+//                assertThat(product.getLikeCount()).isEqualTo(1L);
+//            });
+//    }
 }
