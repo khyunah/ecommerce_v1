@@ -1,16 +1,23 @@
 package com.loopers.application.payment;
 
+import com.loopers.domain.order.Order;
+import com.loopers.domain.order.OrderRepository;
 import com.loopers.domain.payment.Payment;
 import com.loopers.domain.payment.PaymentRepository;
 import com.loopers.domain.payment.PaymentStatus;
 import com.loopers.domain.payment.dto.PgCallbackRequest;
 import com.loopers.domain.payment.dto.PgPaymentResponse;
 import com.loopers.domain.payment.event.PaymentResultEvent;
+import com.loopers.infrastructure.event.EventPublishService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.math.BigDecimal;
+import java.util.List;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -18,8 +25,12 @@ import org.springframework.transaction.annotation.Transactional;
 public class PaymentCallbackService {
 
     private final PaymentRepository paymentRepository;
+    private final OrderRepository orderRepository;
     private final PaymentStatusService paymentStatusService;
     private final ApplicationEventPublisher eventPublisher;
+    
+    @Autowired(required = false) // 선택적 의존성 - 테스트에서는 null 가능
+    private EventPublishService eventPublishService;
 
     /**
      * PG 콜백 처리 - 이벤트 기반으로 분리
@@ -48,6 +59,9 @@ public class PaymentCallbackService {
                     payment.completePayment(request.transactionKey());
                     paymentRepository.save(payment);
                     log.info("결제 완료 상태 업데이트 완료 - paymentSeq: {}", payment.getPaymentSeq());
+                    
+                    // 결제 완료 시 OrderPaid 이벤트 발행 (EventPublishService가 있을 때만)
+                    publishOrderPaidEventIfAvailable(payment);
                     
                     // 결제 완료 이벤트 발행 (부가 로직과 분리)
                     publishPaymentResultEvent(PaymentResultEvent.createCompleted(
@@ -128,6 +142,9 @@ public class PaymentCallbackService {
                 
                 // 상태가 변경된 경우 이벤트 발행
                 if (payment.getPaymentStatus() == PaymentStatus.COMPLETED && previousStatus != PaymentStatus.COMPLETED) {
+                    // OrderPaid 이벤트도 발행
+                    publishOrderPaidEventIfAvailable(payment);
+                    
                     publishPaymentResultEvent(PaymentResultEvent.createCompleted(
                             payment.getRefOrderId(), payment.getPaymentSeq(), null));
                 } else if ((payment.getPaymentStatus() == PaymentStatus.FAILED || payment.getPaymentStatus() == PaymentStatus.CANCELED)
@@ -146,6 +163,45 @@ public class PaymentCallbackService {
         } catch (Exception e) {
             log.error("수동 상태 확인 중 오류 - paymentSeq: {}", paymentSeq, e);
             return "상태 확인 중 오류 발생: " + e.getMessage();
+        }
+    }
+    
+    /**
+     * EventPublishService가 있을 때만 OrderPaid 이벤트 발행 (Null-Safe)
+     */
+    private void publishOrderPaidEventIfAvailable(Payment payment) {
+        if (eventPublishService != null) {
+            try {
+                // 주문 정보 조회
+                Order order = orderRepository.findById(payment.getRefOrderId())
+                        .orElseThrow(() -> new IllegalArgumentException("주문 정보를 찾을 수 없습니다."));
+                
+                // OrderItem을 OrderPaidEvent.OrderItem으로 변환
+                List<com.loopers.domain.event.order.OrderPaidEvent.OrderItem> eventOrderItems = order.getOrderItems().stream()
+                        .map(orderItem -> new com.loopers.domain.event.order.OrderPaidEvent.OrderItem(
+                            orderItem.getProductId(),
+                            orderItem.getProductName(),
+                            (long) orderItem.getQuantity(),
+                            orderItem.getSellingPrice().getValue()
+                        ))
+                        .toList();
+                
+                // 주문 결제 완료 이벤트 발행
+                eventPublishService.publishOrderPaid(
+                    payment.getRefOrderId(),
+                    order.getRefUserId(),
+                    BigDecimal.valueOf(payment.getPaymentAmount()),
+                    eventOrderItems
+                );
+                
+                log.info("Published OrderPaid event - OrderId: {}, PaymentSeq: {}, Amount: {}", 
+                        payment.getRefOrderId(), payment.getPaymentSeq(), payment.getPaymentAmount());
+                        
+            } catch (Exception e) {
+                // 이벤트 발행 실패 시 로깅 (결제 완료 처리는 이미 완료됨)
+                log.error("Failed to publish OrderPaid event - PaymentSeq: {}, Error: {}", 
+                        payment.getPaymentSeq(), e.getMessage(), e);
+            }
         }
     }
 }

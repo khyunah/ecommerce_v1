@@ -27,8 +27,10 @@ import com.loopers.domain.user.User;
 import com.loopers.domain.user.UserService;
 import com.loopers.support.error.CoreException;
 import com.loopers.support.error.ErrorType;
+import com.loopers.infrastructure.event.EventPublishService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
@@ -59,6 +61,9 @@ public class OrderFacade {
     private final OrderService orderService;
     private final PaymentService paymentService;
     private final PaymentStatusService paymentStatusService;
+    
+    @Autowired(required = false) // 선택적 의존성 - 테스트에서는 null 가능
+    private EventPublishService eventPublishService;
 
     @Transactional
     public OrderCreateResult placeOrder(OrderCreateCommand command) {
@@ -75,7 +80,18 @@ public class OrderFacade {
             // 1. 재고 처리
             for (OrderItemCriteria item : command.items()) {
                 Stock stock = stockService.getByRefProductIdWithLock(item.productId());
+                Long previousStock = (long) stock.getQuantity();
                 stockService.updateQuantity(stock, item.quantity());
+                Long currentStock = (long) stock.getQuantity();
+                
+                // 재고 변경 이벤트 발행 (EventPublishService가 있을 때만)
+                publishStockAdjustedEventIfAvailable(
+                    item.productId(), 
+                    previousStock, 
+                    currentStock, 
+                    "주문으로 인한 재고 차감"
+                );
+                
                 log.debug("재고 업데이트 완료 - productId: {}, 남은 수량: {}", item.productId(), stock.getQuantity());
             }
 
@@ -268,6 +284,15 @@ public class OrderFacade {
             paymentStatusService.checkAndRecoverPaymentStatus(payment);
         } catch (Exception e) {
             log.error("비동기 결제 상태 확인 실패: {}", payment.getPaymentSeq(), e);
+        }
+    }
+    
+    /**
+     * EventPublishService가 있을 때만 재고 변경 이벤트 발행 (Null-Safe)
+     */
+    private void publishStockAdjustedEventIfAvailable(Long productId, Long previousStock, Long currentStock, String reason) {
+        if (eventPublishService != null) {
+            eventPublishService.publishStockAdjusted(productId, previousStock, currentStock, reason);
         }
     }
 }

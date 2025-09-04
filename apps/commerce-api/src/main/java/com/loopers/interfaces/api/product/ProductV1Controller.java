@@ -25,7 +25,17 @@ public class ProductV1Controller {
     @GetMapping("/{productId}")
     public ResponseEntity<ApiResponse<ProductV1Dto.ProductInfoResponse>> get(@PathVariable Long productId, HttpServletRequest headers){
         Long userId = AuthenticatedUserIdProvider.getUserId(headers);
-        ProductDetailInfo productDetailInfo = productFacade.getDetail(productId);
+        String sessionId = headers.getSession() != null ? headers.getSession().getId() : null;
+        
+        ProductDetailInfo productDetailInfo;
+        if (userId != null) {
+            // 로그인 사용자: 이벤트 발행 포함
+            productDetailInfo = productFacade.getDetailWithEvent(productId, userId, sessionId);
+        } else {
+            // 비로그인 사용자: 캐시된 조회 (이벤트 발행 없음)
+            productDetailInfo = productFacade.getDetail(productId);
+        }
+        
         ProductV1Dto.ProductInfoResponse response = ProductV1Dto.ProductInfoResponse.from(productDetailInfo);
         return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(response));
     }
